@@ -1,8 +1,14 @@
 package de.sb.radio.persistence;
 
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.Inheritance;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
+
 import static javax.persistence.InheritanceType.JOINED;
 
 import javax.persistence.Column;
@@ -13,27 +19,33 @@ import javax.persistence.Column;
 public class Track extends BaseEntity{
 
 	@Column(nullable = false)
+	@NotNull
+	@Size(min = 1, max = 127)
 	private String name;
 	@Column(nullable = false)
+	@NotNull
+	@Size(min = 1, max = 127)
 	private String artist;
 	@Column(nullable = false)
+	@NotNull
+	@Size(min = 1, max = 31)
 	private String genre;
 	@Column(nullable = false)
+	@NotNull
 	private byte ordinal;
-	@Column(name = "albumReference", nullable = false)
+	
+	@NotNull
+	@ManyToOne(optional = false)
+	@JoinColumn(name="albumReference", nullable = false, updatable = false)
 	private Album album;
+	
 	@Column(name = "ownerReference", nullable = false)
+	@NotNull
+	@ManyToOne(fetch=FetchType.LAZY)
 	private Person owner;
 	private Document recording;
 	
 	protected Track() {
-		this.name = "";
-		this.artist = "";
-		this.genre = "";
-		this.ordinal = 0;
-		this.album = new Album();
-		this.owner = new Person();
-		this.recording = new Document();
 	}
 	
 	public String getName() {

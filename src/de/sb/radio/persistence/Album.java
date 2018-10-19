@@ -2,9 +2,16 @@ package de.sb.radio.persistence;
 
 import javax.persistence.Entity;
 import javax.persistence.Inheritance;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
+
 import static javax.persistence.InheritanceType.JOINED;
 
+import java.util.Set;
+
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 
 @Entity
@@ -13,20 +20,20 @@ import javax.persistence.Column;
 public class Album extends BaseEntity{
 
 	@Column(nullable = false)
+	@NotNull
+	@Size(max = 127)
 	private String title;
 	@Column(name = "publication", nullable = false)
+	@NotNull
 	private short releaseYear;
 	private byte trackCount;
 	@Column(name = "coverReference", nullable = false)
+	@NotNull
 	private Document cover;
-	private Track[] tracks;
+	@OneToMany(mappedBy = "album", cascade = {CascadeType.REMOVE, CascadeType.REFRESH})
+	private Set<Track> tracks;
 	
 	protected Album() {
-		this.title = "";
-		this.releaseYear = 0;
-		this.trackCount = 0;
-		this.cover = new Document();
-		this.tracks = new Track[15];
 	}
 	
 	

@@ -2,31 +2,71 @@ package de.sb.radio.persistence;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+import javax.persistence.FetchType;
 import javax.persistence.Inheritance;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
+import javax.validation.constraints.Email;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
+
 import static javax.persistence.InheritanceType.JOINED;
+
+import java.util.Collections;
+import java.util.Set;
 
 
 @Entity
 @Table(schema = "radio", name = "Person")
 @Inheritance(strategy = JOINED)
 public class Person extends BaseEntity{
+	static enum Group {
+		USER, ADMIN;
+	}
 	
 	@Column(nullable = false)
+	@NotNull
+	@Size(min = 1, max = 127)
+	@Email
 	private String email;
+	
 	@Column(nullable = false)
+	@NotNull
+	@Size(min = 32, max = 32)
 	private byte[] passwordHash;
 	
-	private Name name;
+	@Column(nullable = false)
+	@NotNull
+	@Size(min = 1, max = 31)
+	private String forename;
+	@Column(name = "surname", nullable = false)
+	@NotNull
+	@Size(min = 1, max = 31)
+	private String lastname;
+	@NotNull
+	@Enumerated(EnumType.STRING)
+	@Column(name = "groupAlias")
+	private Group group;
 	
-	@Column
-	private Track[] tracks;	
+	@OneToMany(mappedBy="owner")
+	private Set<Track> tracks;
+	
+	@ManyToOne
+	@JoinColumn(name="avatarReference")
+	private Document avatar;
+	
+	public Person(Document avatar) {
+		this.tracks = Collections.emptySet();
+		this.avatar = avatar;
+		this.group = Group.USER;
+	}
 	
 	protected Person() {
-		this.email = "email@mail.de";
-		this.passwordHash = new byte[32];
-		this.name = new Name();
-		this.tracks = new Track[15];
+		this(null);
 	}
 	
 	public String getEmail() {
@@ -45,20 +85,31 @@ public class Person extends BaseEntity{
 		this.passwordHash = passwordHash;
 	}
 	
-	public Track[] getTracks() {
+	public Set<Track> getTracks() {
 		return this.tracks;
 	}
 	
-	public void setTracks(Track[] tracks) {
-		this.tracks = tracks;
+	public String getForename() {
+		return this.forename;
 	}
 	
-	public Name getName() {
-		return this.name;
+	public void setForename(String forename) {
+		this.forename = forename;
 	}
 	
-	public void setName(String forename, String lastname) {
-		Name name = new Name(forename, lastname);
-		this.name = name;
+	public String getLastname() {
+		return this.lastname;
+	}
+	
+	public void setLastname(String lastname) {
+		this.lastname = lastname;
+	}
+
+	public Document getAvatar() {
+		return avatar;
+	}
+
+	public void setAvatar(Document avatar) {
+		this.avatar = avatar;
 	}
 }
