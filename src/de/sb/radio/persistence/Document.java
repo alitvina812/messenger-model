@@ -8,6 +8,14 @@ import javax.validation.constraints.Size;
 
 import static javax.persistence.InheritanceType.JOINED;
 
+import java.awt.Graphics2D;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+
+import javax.imageio.ImageIO;
 import javax.persistence.Column;
 
 @Entity
@@ -37,9 +45,38 @@ public class Document extends BaseEntity{
 		this.contentHash = DEFAULT_CONTENT_HASH;
 		this.contentType = "application/octet-stream";
 	}
+
 	
-	public byte[] _scaledImageContent(String fileType, byte[] content, int width, int height) {
-		return content;
+	static public byte[] scaledImageContent (final String fileType, final byte[] content, final int width, final int height) throws NullPointerException, IllegalArgumentException {
+		try {
+			if (fileType == null | content == null) throw new NullPointerException();
+			if (width < 0 | height < 0) throw new IllegalArgumentException();
+			if (width == 0 & height == 0) return content;
+
+			final BufferedImage originalImage;
+			try (InputStream byteSource = new ByteArrayInputStream(content)) {
+				originalImage = ImageIO.read(byteSource);
+			}
+
+			final int scaleWidth = width == 0 ? originalImage.getWidth() * height / originalImage.getHeight() : width;
+			final int scaleHeight = height == 0 ? originalImage.getHeight() * width / originalImage.getWidth() : height;
+			final BufferedImage scaledImage = new BufferedImage(scaleWidth, scaleHeight, originalImage.getType());
+			final Graphics2D graphics = scaledImage.createGraphics();
+			try {
+				graphics.drawImage(originalImage, 0, 0, scaleWidth, scaleHeight, null);
+			} finally {
+				graphics.dispose();
+			}
+
+			try (ByteArrayOutputStream byteSink = new ByteArrayOutputStream()) {
+				final boolean supported = ImageIO.write(scaledImage, fileType, byteSink);
+				if (!supported) throw new IllegalArgumentException();
+				return byteSink.toByteArray();
+			}
+		} catch (final IOException exception) {
+			// there should never be I/O errors with byte array based I/O streams
+			throw new AssertionError(exception);
+		}
 	}
 	
 	public byte[] getContentHash() {

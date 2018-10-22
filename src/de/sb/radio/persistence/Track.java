@@ -18,19 +18,22 @@ import javax.persistence.Column;
 @Inheritance(strategy = JOINED)
 public class Track extends BaseEntity{
 
-	@Column(nullable = false)
+	@Column(nullable = false, updatable = true)
 	@NotNull
 	@Size(min = 1, max = 127)
 	private String name;
-	@Column(nullable = false)
+	
+	@Column(nullable = false, updatable = true)
 	@NotNull
 	@Size(min = 1, max = 127)
 	private String artist;
-	@Column(nullable = false)
+	
+	@Column(nullable = false, updatable = true)
 	@NotNull
 	@Size(min = 1, max = 31)
 	private String genre;
-	@Column(nullable = false)
+	
+	@Column(nullable = false, updatable = true)
 	@NotNull
 	private byte ordinal;
 	
@@ -39,13 +42,23 @@ public class Track extends BaseEntity{
 	@JoinColumn(name="albumReference", nullable = false, updatable = false)
 	private Album album;
 	
-	@Column(name = "ownerReference", nullable = false)
 	@NotNull
-	@ManyToOne(fetch=FetchType.LAZY)
+	@ManyToOne(optional = false)
+	@JoinColumn(name = "ownerReference", nullable = false, updatable = true)
 	private Person owner;
+	
+	@NotNull
+	@ManyToOne(optional = false)
+	@JoinColumn(name = "recordingReference", nullable = false, updatable = true)
 	private Document recording;
 	
+	public Track(Album album, Person owner) {
+		this.album = album;
+		this.owner = owner;
+	}
+	
 	protected Track() {
+		this(null, null);
 	}
 	
 	public String getName() {
