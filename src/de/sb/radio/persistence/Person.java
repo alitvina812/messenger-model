@@ -4,7 +4,6 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
-import javax.persistence.FetchType;
 import javax.persistence.Inheritance;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
@@ -13,6 +12,8 @@ import javax.persistence.Table;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+
+import de.sb.radio.persistence.Person.Group;
 
 import static javax.persistence.InheritanceType.JOINED;
 
@@ -24,42 +25,43 @@ import java.util.Set;
 @Table(schema = "radio", name = "Person")
 @Inheritance(strategy = JOINED)
 public class Person extends BaseEntity{
-	static enum Group {
-		USER, ADMIN;
-	}
+	static enum Group {USER, ADMIN;}
 	
-	@Column(nullable = false)
+	@Column(nullable = false, updatable = true)
 	@NotNull
 	@Size(min = 1, max = 127)
 	@Email
 	private String email;
 	
-	@Column(nullable = false)
+	@Column(nullable = false, updatable = true)
 	@NotNull
 	@Size(min = 32, max = 32)
 	private byte[] passwordHash;
 	
-	@Column(nullable = false)
+	@NotNull
+	@Enumerated(EnumType.STRING)
+	@Column(name = "groupAlias", nullable = false, updatable = true)
+	private Group group;
+	
+	@Column(nullable = false, updatable = true)
 	@NotNull
 	@Size(min = 1, max = 31)
 	private String forename;
-	@Column(name = "surname", nullable = false)
+	
+	@Column(name = "surname", nullable = false, updatable = true)
 	@NotNull
 	@Size(min = 1, max = 31)
 	private String lastname;
-	@NotNull
-	@Enumerated(EnumType.STRING)
-	@Column(name = "groupAlias")
-	private Group group;
 	
 	@OneToMany(mappedBy="owner")
 	private Set<Track> tracks;
 	
-	@ManyToOne
-	@JoinColumn(name="avatarReference")
+	@ManyToOne(optional = false)
+	@JoinColumn(name="avatarReference", nullable = false, updatable = true)
 	private Document avatar;
 	
 	public Person(Document avatar) {
+		this.passwordHash = HashTools.sha256HashCode("");
 		this.tracks = Collections.emptySet();
 		this.avatar = avatar;
 		this.group = Group.USER;
@@ -81,8 +83,8 @@ public class Person extends BaseEntity{
 		return this.passwordHash;
 	}
 	
-	public void setPasswordHash(byte[] passwordHash) {
-		this.passwordHash = passwordHash;
+	public void setPasswordHash(String password) {
+		this.passwordHash = HashTools.sha256HashCode(password);
 	}
 	
 	public Set<Track> getTracks() {
@@ -105,6 +107,14 @@ public class Person extends BaseEntity{
 		this.lastname = lastname;
 	}
 
+	public Group getGroup () {
+		return this.group;
+	}
+	
+	public void setGroup (final Group group) {
+		this.group = group;
+	}
+	
 	public Document getAvatar() {
 		return avatar;
 	}
