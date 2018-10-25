@@ -29,7 +29,7 @@ public class Person extends BaseEntity{
 	
 	@Column(nullable = false, updatable = true)
 	@NotNull
-	@Size(min = 1, max = 127)
+	@Size(min = 1, max = 128)
 	@Email
 	private String email;
 	
