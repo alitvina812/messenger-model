@@ -5,14 +5,18 @@ import javax.persistence.Inheritance;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+import javax.persistence.PrimaryKeyJoinColumn;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.PositiveOrZero;
 import javax.validation.constraints.Size;
 
+import de.sb.toolbox.val.NotEqual;
+
 import static javax.persistence.InheritanceType.JOINED;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -21,26 +25,25 @@ import javax.persistence.Column;
 
 @Entity
 @Table(schema = "radio", name = "Album")
-@Inheritance(strategy = JOINED)
+@PrimaryKeyJoinColumn(name = "albumIdentity")
 public class Album extends BaseEntity{
 
 	@Column(nullable = false, updatable = true)
 	@NotNull
-	@Size(max = 127)
+	@Size(min = 1, max = 127)
 	private String title;
 	
 	@Column(name = "publication", nullable = false, updatable = true)
-	@NotNull
-	@Positive
+	@NotEqual("0")
 	private short releaseYear;
 	
 	@Column(nullable = false, updatable = true)
 	@NotNull
-	@PositiveOrZero
+	@Positive
 	private byte trackCount;
 	
 	@ManyToOne(optional = false)
-	@JoinColumn(name = "coverReference", nullable = false, updatable = true)
+	@JoinColumn(name = "coverReference", nullable = false, updatable = false, insertable = true)
 	private Document cover;
 	
 	@OneToMany(mappedBy = "album", cascade = {CascadeType.REMOVE, CascadeType.REFRESH})
@@ -48,8 +51,7 @@ public class Album extends BaseEntity{
 	
 	public Album(Document cover) {
 		this.cover = cover;
-		this.tracks = new HashSet<Track>();
-		this.trackCount = (byte) this.tracks.size();
+		this.tracks = Collections.emptySet();
 	}
 	
 	protected Album() {
@@ -84,17 +86,11 @@ public class Album extends BaseEntity{
 		return cover;
 	}
 
-	public void setCover(Document cover) {
-		this.cover = cover;
-	}
 
 	public Set<Track> getTracks() {
 		return tracks;
 	}
 
-	public void setTracks(Set<Track> tracks) {
-		this.tracks = tracks;
-	}
 	
 	
 }

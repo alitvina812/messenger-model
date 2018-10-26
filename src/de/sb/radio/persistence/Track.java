@@ -1,12 +1,13 @@
 package de.sb.radio.persistence;
 
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
 import javax.persistence.Inheritance;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.PrimaryKeyJoinColumn;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.PositiveOrZero;
 import javax.validation.constraints.Size;
 
 import static javax.persistence.InheritanceType.JOINED;
@@ -15,7 +16,7 @@ import javax.persistence.Column;
 
 @Entity
 @Table(schema = "radio", name = "Track")
-@Inheritance(strategy = JOINED)
+@PrimaryKeyJoinColumn(name = "trackIdentity")
 public class Track extends BaseEntity{
 
 	@Column(nullable = false, updatable = true)
@@ -34,31 +35,32 @@ public class Track extends BaseEntity{
 	private String genre;
 	
 	@Column(nullable = false, updatable = true)
-	@NotNull
+	@PositiveOrZero
 	private byte ordinal;
 	
 	@NotNull
 	@ManyToOne(optional = false)
-	@JoinColumn(name="albumReference", nullable = false, updatable = false)
+	@JoinColumn(name="albumReference", nullable = false, updatable = false, insertable = true)
 	private Album album;
 	
 	@NotNull
 	@ManyToOne(optional = false)
-	@JoinColumn(name = "ownerReference", nullable = false, updatable = true)
+	@JoinColumn(name = "ownerReference", nullable = false, updatable = false, insertable = true)
 	private Person owner;
 	
 	@NotNull
 	@ManyToOne(optional = false)
-	@JoinColumn(name = "recordingReference", nullable = false, updatable = true)
+	@JoinColumn(name = "recordingReference", nullable = false, updatable = false, insertable = true)
 	private Document recording;
 	
-	public Track(Album album, Person owner) {
+	public Track(Album album, Person owner, Document recording) {
 		this.album = album;
 		this.owner = owner;
+		this.recording = recording;
 	}
 	
 	protected Track() {
-		this(null, null);
+		this(null, null, null);
 	}
 	
 	public String getName() {
@@ -97,24 +99,14 @@ public class Track extends BaseEntity{
 		return album;
 	}
 
-	public void setAlbum(Album album) {
-		this.album = album;
-	}
 
 	public Person getOwner() {
 		return owner;
-	}
-
-	public void setOwner(Person owner) {
-		this.owner = owner;
 	}
 
 	public Document getRecording() {
 		return recording;
 	}
 
-	public void setRecording(Document recording) {
-		this.recording = recording;
-	}
 	
 }

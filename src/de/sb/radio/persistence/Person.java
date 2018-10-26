@@ -9,13 +9,12 @@ import javax.persistence.Inheritance;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+import javax.persistence.PrimaryKeyJoinColumn;
 import javax.persistence.Table;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
-
-import de.sb.radio.persistence.Person.Group;
 
 import static javax.persistence.InheritanceType.JOINED;
 
@@ -25,11 +24,11 @@ import java.util.Set;
 
 @Entity
 @Table(schema = "radio", name = "Person")
-@Inheritance(strategy = JOINED)
+@PrimaryKeyJoinColumn(name = "personIdentity")
 public class Person extends BaseEntity{
-	static enum Group {USER, ADMIN;}
+	public static enum Group {USER, ADMIN;}
 	
-	@Column(nullable = false, updatable = true)
+	@Column(nullable = false, updatable = true, unique = true)
 	@NotNull
 	@Size(min = 1, max = 128)
 	@Email
@@ -48,13 +47,11 @@ public class Person extends BaseEntity{
 	@Column(nullable = false, updatable = true)
 	@NotNull
 	@Size(min = 1, max = 31)
-	@Pattern(regexp = "[a-zA-Z]+")
 	private String forename;
 	
 	@Column(name = "surname", nullable = false, updatable = true)
 	@NotNull
 	@Size(min = 1, max = 31)
-	@Pattern(regexp = "[a-zA-Z]+")
 	private String lastname;
 	
 	@OneToMany(mappedBy="owner", cascade = {CascadeType.REMOVE, CascadeType.REFRESH})

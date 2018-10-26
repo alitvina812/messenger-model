@@ -2,6 +2,7 @@ package de.sb.radio.persistence;
 
 import javax.persistence.Entity;
 import javax.persistence.Inheritance;
+import javax.persistence.PrimaryKeyJoinColumn;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
@@ -20,7 +21,7 @@ import javax.persistence.Column;
 
 @Entity
 @Table(schema = "radio", name = "Document")
-@Inheritance(strategy = JOINED)
+@PrimaryKeyJoinColumn(name = "documentIdentity")
 public class Document extends BaseEntity{
 	static private final byte[] DEFAULT_CONTENT = new byte[0];
 	static private final byte[] DEFAULT_CONTENT_HASH = HashTools.sha256HashCode(DEFAULT_CONTENT);
@@ -47,37 +48,6 @@ public class Document extends BaseEntity{
 	}
 
 	
-	static public byte[] scaledImageContent (final String fileType, final byte[] content, final int width, final int height) throws NullPointerException, IllegalArgumentException {
-		try {
-			if (fileType == null | content == null) throw new NullPointerException();
-			if (width < 0 | height < 0) throw new IllegalArgumentException();
-			if (width == 0 & height == 0) return content;
-
-			final BufferedImage originalImage;
-			try (InputStream byteSource = new ByteArrayInputStream(content)) {
-				originalImage = ImageIO.read(byteSource);
-			}
-
-			final int scaleWidth = width == 0 ? originalImage.getWidth() * height / originalImage.getHeight() : width;
-			final int scaleHeight = height == 0 ? originalImage.getHeight() * width / originalImage.getWidth() : height;
-			final BufferedImage scaledImage = new BufferedImage(scaleWidth, scaleHeight, originalImage.getType());
-			final Graphics2D graphics = scaledImage.createGraphics();
-			try {
-				graphics.drawImage(originalImage, 0, 0, scaleWidth, scaleHeight, null);
-			} finally {
-				graphics.dispose();
-			}
-
-			try (ByteArrayOutputStream byteSink = new ByteArrayOutputStream()) {
-				final boolean supported = ImageIO.write(scaledImage, fileType, byteSink);
-				if (!supported) throw new IllegalArgumentException();
-				return byteSink.toByteArray();
-			}
-		} catch (final IOException exception) {
-			// there should never be I/O errors with byte array based I/O streams
-			throw new AssertionError(exception);
-		}
-	}
 	
 	public byte[] getContentHash() {
 		return this.contentHash;
@@ -99,5 +69,37 @@ public class Document extends BaseEntity{
 	public void setContent(byte[] content) {
 		this.content = content;
 		this.contentHash = HashTools.sha256HashCode(content);
+	}
+	
+	static public byte[] scaledImageContent (final String fileType, final byte[] content, final int width, final int height) throws NullPointerException, IllegalArgumentException {
+		try {
+			if (fileType == null | content == null) throw new NullPointerException();
+			if (width < 0 | height < 0) throw new IllegalArgumentException();
+			if (width == 0 & height == 0) return content;
+			
+			final BufferedImage originalImage;
+			try (InputStream byteSource = new ByteArrayInputStream(content)) {
+				originalImage = ImageIO.read(byteSource);
+			}
+			
+			final int scaleWidth = width == 0 ? originalImage.getWidth() * height / originalImage.getHeight() : width;
+			final int scaleHeight = height == 0 ? originalImage.getHeight() * width / originalImage.getWidth() : height;
+			final BufferedImage scaledImage = new BufferedImage(scaleWidth, scaleHeight, originalImage.getType());
+			final Graphics2D graphics = scaledImage.createGraphics();
+			try {
+				graphics.drawImage(originalImage, 0, 0, scaleWidth, scaleHeight, null);
+			} finally {
+				graphics.dispose();
+			}
+			
+			try (ByteArrayOutputStream byteSink = new ByteArrayOutputStream()) {
+				final boolean supported = ImageIO.write(scaledImage, fileType, byteSink);
+				if (!supported) throw new IllegalArgumentException();
+				return byteSink.toByteArray();
+			}
+		} catch (final IOException exception) {
+			// there should never be I/O errors with byte array based I/O streams
+			throw new AssertionError(exception);
+		}
 	}
 }
