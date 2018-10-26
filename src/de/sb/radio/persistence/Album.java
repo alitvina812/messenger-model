@@ -7,6 +7,8 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Positive;
+import javax.validation.constraints.PositiveOrZero;
 import javax.validation.constraints.Size;
 
 import static javax.persistence.InheritanceType.JOINED;
@@ -29,10 +31,12 @@ public class Album extends BaseEntity{
 	
 	@Column(name = "publication", nullable = false, updatable = true)
 	@NotNull
+	@Positive
 	private short releaseYear;
 	
 	@Column(nullable = false, updatable = true)
 	@NotNull
+	@PositiveOrZero
 	private byte trackCount;
 	
 	@ManyToOne(optional = false)

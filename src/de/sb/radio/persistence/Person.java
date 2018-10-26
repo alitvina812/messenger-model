@@ -1,5 +1,6 @@
 package de.sb.radio.persistence;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -11,6 +12,7 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 
 import de.sb.radio.persistence.Person.Group;
@@ -46,14 +48,16 @@ public class Person extends BaseEntity{
 	@Column(nullable = false, updatable = true)
 	@NotNull
 	@Size(min = 1, max = 31)
+	@Pattern(regexp = "[a-zA-Z]+")
 	private String forename;
 	
 	@Column(name = "surname", nullable = false, updatable = true)
 	@NotNull
 	@Size(min = 1, max = 31)
+	@Pattern(regexp = "[a-zA-Z]+")
 	private String lastname;
 	
-	@OneToMany(mappedBy="owner")
+	@OneToMany(mappedBy="owner", cascade = {CascadeType.REMOVE, CascadeType.REFRESH})
 	private Set<Track> tracks;
 	
 	@ManyToOne(optional = false)
