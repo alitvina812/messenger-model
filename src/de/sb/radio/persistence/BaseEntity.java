@@ -3,7 +3,11 @@ package de.sb.radio.persistence;
 import static javax.persistence.GenerationType.IDENTITY;
 import static javax.persistence.InheritanceType.JOINED;
 import static javax.xml.bind.annotation.XmlAccessType.NONE;
+
+import java.util.Set;
+
 import javax.json.bind.annotation.JsonbProperty;
+import javax.json.bind.annotation.JsonbTransient;
 import javax.json.bind.annotation.JsonbVisibility;
 import javax.persistence.Column;
 import javax.persistence.DiscriminatorColumn;
@@ -30,7 +34,7 @@ import de.sb.toolbox.bind.XmlLongToStringAdapter;
  * This abstract class defines entities as the root of a JOINED_TABLE inheritance tree. Having a
  * common root class allows for the unique generation of primary key across all subclasses, and
  * additionally for polymorphic queries. Note that this implementation accesses it's own field using
- * accessor methods to allow JPA entity proxies to fetch the correct state. Note that this class
+ * accessor methods to al8low JPA entity proxies to fetch the correct state. Note that this class
  * has a natural ordering that is inconsistent with {@link Object#equals(Object)}.
  */
 @XmlType
@@ -55,7 +59,8 @@ public abstract class BaseEntity implements Comparable<BaseEntity> {
 
 	@Column(nullable = false, updatable = false, insertable = true)
 	private long creationTimestamp;
-
+	
+	
 
 	/**
 	 * Creates a new instance.
@@ -73,7 +78,7 @@ public abstract class BaseEntity implements Comparable<BaseEntity> {
 	 * instance has been inserted into the database.
 	 * @return the identity (primary key)
 	 */
-	@JsonbProperty @XmlAttribute @XmlID
+	@JsonbProperty @XmlAttribute @XmlID @JsonbTransient
 	@XmlJavaTypeAdapter(type=long.class, value=XmlLongToStringAdapter.class)
 	public long getIdentity () {
 		return this.identity;
@@ -93,7 +98,7 @@ public abstract class BaseEntity implements Comparable<BaseEntity> {
 	 * Returns the version. This property is currently inactive.
 	 * @return the version
 	 */
-	@JsonbProperty @XmlAttribute
+	@JsonbProperty @XmlAttribute @JsonbTransient
 	public int getVersion () {
 		return this.version;
 	}
@@ -150,4 +155,5 @@ public abstract class BaseEntity implements Comparable<BaseEntity> {
 	public int compareTo (final BaseEntity entity) {
 		return Long.compare(this.getIdentity(), entity.getIdentity());
 	}
+
 }

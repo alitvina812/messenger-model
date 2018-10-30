@@ -7,6 +7,8 @@ import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
+import de.sb.toolbox.bind.JsonProtectedPropertyStrategy;
+
 import static javax.persistence.InheritanceType.JOINED;
 
 import java.awt.Graphics2D;
@@ -17,11 +19,15 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import javax.imageio.ImageIO;
+import javax.json.bind.annotation.JsonbProperty;
+import javax.json.bind.annotation.JsonbTransient;
+import javax.json.bind.annotation.JsonbVisibility;
 import javax.persistence.Column;
 
 @Entity
 @Table(schema = "radio", name = "Document")
 @PrimaryKeyJoinColumn(name = "documentIdentity")
+@JsonbVisibility(JsonProtectedPropertyStrategy.class)
 public class Document extends BaseEntity{
 	static private final byte[] DEFAULT_CONTENT = new byte[0];
 	static private final byte[] DEFAULT_CONTENT_HASH = HashTools.sha256HashCode(DEFAULT_CONTENT);
@@ -48,12 +54,14 @@ public class Document extends BaseEntity{
 	}
 
 	
-	
+	@JsonbProperty
+	@JsonbTransient
 	public byte[] getContentHash() {
 		return this.contentHash;
 	}
 	
-	
+	@JsonbProperty
+	@JsonbTransient
 	public String getContentType() {
 		return this.contentType;
 	}
@@ -62,6 +70,8 @@ public class Document extends BaseEntity{
 		this.contentType = contentType;
 	}
 	
+	@JsonbProperty
+	@JsonbTransient
 	public byte[] getContent() {
 		return this.content;
 	}

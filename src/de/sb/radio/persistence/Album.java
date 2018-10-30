@@ -12,6 +12,7 @@ import javax.validation.constraints.Positive;
 import javax.validation.constraints.PositiveOrZero;
 import javax.validation.constraints.Size;
 
+import de.sb.toolbox.bind.JsonProtectedPropertyStrategy;
 import de.sb.toolbox.val.NotEqual;
 
 import static javax.persistence.InheritanceType.JOINED;
@@ -20,12 +21,16 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
+import javax.json.bind.annotation.JsonbProperty;
+import javax.json.bind.annotation.JsonbTransient;
+import javax.json.bind.annotation.JsonbVisibility;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 
 @Entity
 @Table(schema = "radio", name = "Album")
 @PrimaryKeyJoinColumn(name = "albumIdentity")
+@JsonbVisibility(JsonProtectedPropertyStrategy.class)
 public class Album extends BaseEntity{
 
 	@Column(nullable = false, updatable = true)
@@ -49,6 +54,12 @@ public class Album extends BaseEntity{
 	@OneToMany(mappedBy = "album", cascade = {CascadeType.REMOVE, CascadeType.REFRESH})
 	private Set<Track> tracks;
 	
+	@Column(nullable = false, updatable = false, insertable = true)
+	private long coverReference;
+	
+	@Column(nullable = false, updatable = false, insertable = true)
+	private long[] trackReferences;
+	
 	public Album(Document cover) {
 		this.cover = cover;
 		this.tracks = Collections.emptySet();
@@ -58,6 +69,8 @@ public class Album extends BaseEntity{
 		this(null);
 	}
 	
+	@JsonbProperty("album-title")
+	@JsonbTransient
 	public String getTitle() {
 		return title;
 	}
@@ -66,6 +79,8 @@ public class Album extends BaseEntity{
 		this.title = title;
 	}
 	
+	@JsonbProperty("album-release-year")
+	@JsonbTransient
 	public short getReleaseYear() {
 		return releaseYear;
 	}
@@ -74,6 +89,8 @@ public class Album extends BaseEntity{
 		this.releaseYear = releaseYear;
 	}
 
+	@JsonbProperty("album-track-count")
+	@JsonbTransient
 	public byte getTrackCount() {
 		return trackCount;
 	}
@@ -82,15 +99,36 @@ public class Album extends BaseEntity{
 		this.trackCount = trackCount;
 	}
 
+	@JsonbProperty("album-cover")
+	@JsonbTransient
 	public Document getCover() {
 		return cover;
 	}
 
-
+	@JsonbProperty("album-tracklist")
+	@JsonbTransient
 	public Set<Track> getTracks() {
 		return tracks;
 	}
+	
+	@JsonbProperty()
+	@JsonbTransient
+	protected long getCoverReference() {
+		return this.coverReference;
+	}
+	
+	protected void setCoverReference (final long coverReference) {
+		this.coverReference = coverReference;
+	}
+	
+	@JsonbProperty()
+	@JsonbTransient
+	protected long[] getTrackReferences() {
+		return this.trackReferences;
+	}
+	
+	protected void setRecordingReference (final long[] trackReferences) {
+		this.trackReferences = trackReferences;
+	}
 
-	
-	
 }
