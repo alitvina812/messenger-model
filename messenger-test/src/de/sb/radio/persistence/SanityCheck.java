@@ -11,8 +11,8 @@ public class SanityCheck {
 		EntityManagerFactory emf = Persistence.createEntityManagerFactory("radio");
 		EntityManager em = emf.createEntityManager();
 		
-		em.find(Person.class, 2L);
-		System.out.println("ines");
+		Person ines = em.find(Person.class, 2L);
+		System.out.println(ines);
 	}
 
 }
