@@ -55,8 +55,8 @@ public class BasicAuthenticationFilter implements ContainerRequestFilter {
 		if (textCredentials != null) {
 			final HttpCredentials.Basic credentials = RestCredentials.newBasicInstance(textCredentials);
 
-			final EntityManager messengerManager = RestJpaLifecycleProvider.entityManager("messenger");
-			final List<Person> people = messengerManager
+			final EntityManager radioManager = RestJpaLifecycleProvider.entityManager("radio");
+			final List<Person> people = radioManager
 				.createQuery("select p from Person as p where p.email = :email", Person.class)
 				.setParameter("email", credentials.getUsername())
 				.getResultList();

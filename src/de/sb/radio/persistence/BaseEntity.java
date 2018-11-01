@@ -2,10 +2,6 @@ package de.sb.radio.persistence;
 
 import static javax.persistence.GenerationType.IDENTITY;
 import static javax.persistence.InheritanceType.JOINED;
-import static javax.xml.bind.annotation.XmlAccessType.NONE;
-
-import java.util.Set;
-
 import javax.json.bind.annotation.JsonbProperty;
 import javax.json.bind.annotation.JsonbTransient;
 import javax.json.bind.annotation.JsonbVisibility;
@@ -19,27 +15,17 @@ import javax.persistence.Inheritance;
 import javax.persistence.Table;
 import javax.persistence.Version;
 import javax.validation.constraints.Positive;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlID;
-import javax.xml.bind.annotation.XmlSeeAlso;
-import javax.xml.bind.annotation.XmlType;
-import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import de.sb.toolbox.Copyright;
 import de.sb.toolbox.bind.JsonProtectedPropertyStrategy;
-import de.sb.toolbox.bind.XmlLongToStringAdapter;
 
 
 /**
  * This abstract class defines entities as the root of a JOINED_TABLE inheritance tree. Having a
  * common root class allows for the unique generation of primary key across all subclasses, and
  * additionally for polymorphic queries. Note that this implementation accesses it's own field using
- * accessor methods to al8low JPA entity proxies to fetch the correct state. Note that this class
+ * accessor methods to allow JPA entity proxies to fetch the correct state. Note that this class
  * has a natural ordering that is inconsistent with {@link Object#equals(Object)}.
  */
-@XmlType
-@XmlAccessorType(NONE)
-@XmlSeeAlso({ Document.class, Track.class, Album.class, Person.class })
 @JsonbVisibility(JsonProtectedPropertyStrategy.class)
 @Entity
 @Table(schema = "radio", name = "BaseEntity", indexes = @Index(columnList = "discriminator"))
@@ -59,8 +45,7 @@ public abstract class BaseEntity implements Comparable<BaseEntity> {
 
 	@Column(nullable = false, updatable = false, insertable = true)
 	private long creationTimestamp;
-	
-	
+
 
 	/**
 	 * Creates a new instance.
@@ -78,8 +63,7 @@ public abstract class BaseEntity implements Comparable<BaseEntity> {
 	 * instance has been inserted into the database.
 	 * @return the identity (primary key)
 	 */
-	@JsonbProperty @XmlAttribute @XmlID @JsonbTransient
-	@XmlJavaTypeAdapter(type=long.class, value=XmlLongToStringAdapter.class)
+	@JsonbProperty @JsonbTransient
 	public long getIdentity () {
 		return this.identity;
 	}
@@ -98,7 +82,7 @@ public abstract class BaseEntity implements Comparable<BaseEntity> {
 	 * Returns the version. This property is currently inactive.
 	 * @return the version
 	 */
-	@JsonbProperty @XmlAttribute @JsonbTransient
+	@JsonbProperty @JsonbTransient
 	public int getVersion () {
 		return this.version;
 	}
@@ -117,7 +101,7 @@ public abstract class BaseEntity implements Comparable<BaseEntity> {
 	 * Returns the creation timestamp.
 	 * @return the creation timestamp in milliseconds since midnight 1/1/1970 UTC
 	 */
-	@JsonbProperty @XmlAttribute
+	@JsonbProperty
 	public long getCreationTimestamp () {
 		return this.creationTimestamp;
 	}
@@ -155,5 +139,4 @@ public abstract class BaseEntity implements Comparable<BaseEntity> {
 	public int compareTo (final BaseEntity entity) {
 		return Long.compare(this.getIdentity(), entity.getIdentity());
 	}
-
 }

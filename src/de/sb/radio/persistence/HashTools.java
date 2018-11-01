@@ -3,9 +3,7 @@ package de.sb.radio.persistence;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-
 import javax.json.bind.annotation.JsonbVisibility;
-
 import de.sb.toolbox.Copyright;
 import de.sb.toolbox.bind.JsonProtectedPropertyStrategy;
 
