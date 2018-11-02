@@ -55,13 +55,11 @@ public class Document extends BaseEntity{
 
 	
 	@JsonbProperty
-	@JsonbTransient
 	public byte[] getContentHash() {
 		return this.contentHash;
 	}
 	
 	@JsonbProperty
-	@JsonbTransient
 	public String getContentType() {
 		return this.contentType;
 	}
@@ -70,7 +68,6 @@ public class Document extends BaseEntity{
 		this.contentType = contentType;
 	}
 	
-	@JsonbProperty
 	@JsonbTransient
 	public byte[] getContent() {
 		return this.content;

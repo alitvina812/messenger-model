@@ -59,15 +59,6 @@ public class Track extends BaseEntity{
 	@JoinColumn(name = "recordingReference", nullable = false, updatable = false, insertable = true)
 	private Document recording;
 	
-	@Column(nullable = false, updatable = false, insertable = true)
-	private long albumReference;
-	
-	@Column(nullable = false, updatable = false, insertable = true)
-	private long ownerReference;
-	
-	@Column(nullable = false, updatable = false, insertable = true)
-	private long recordingReference;
-	
 	public Track(Album album, Person owner, Document recording) {
 		this.album = album;
 		this.owner = owner;
@@ -78,8 +69,7 @@ public class Track extends BaseEntity{
 		this(null, null, null);
 	}
 	
-	@JsonbProperty("track-name")
-	@JsonbTransient
+	@JsonbProperty
 	public String getName() {
 		return name;
 	}
@@ -88,8 +78,7 @@ public class Track extends BaseEntity{
 		this.name = name;
 	}
 
-	@JsonbProperty("track-artist")
-	@JsonbTransient
+	@JsonbProperty
 	public String getArtist() {
 		return artist;
 	}
@@ -98,8 +87,7 @@ public class Track extends BaseEntity{
 		this.artist = artist;
 	}
 
-	@JsonbProperty("track-genre")
-	@JsonbTransient
+	@JsonbProperty
 	public String getGenre() {
 		return genre;
 	}
@@ -108,8 +96,7 @@ public class Track extends BaseEntity{
 		this.genre = genre;
 	}
 
-	@JsonbProperty("track-ordinal")
-	@JsonbTransient
+	@JsonbProperty
 	public byte getOrdinal() {
 		return ordinal;
 	}
@@ -118,53 +105,36 @@ public class Track extends BaseEntity{
 		this.ordinal = ordinal;
 	}
 
-	@JsonbProperty("album")
 	@JsonbTransient
 	public Album getAlbum() {
 		return album;
 	}
 
-	@JsonbProperty("track-owner")
 	@JsonbTransient
 	public Person getOwner() {
 		return owner;
 	}
 
-	@JsonbProperty("recording")
 	@JsonbTransient
 	public Document getRecording() {
 		return recording;
 	}
 
 	@JsonbProperty()
-	@JsonbTransient
 	protected long getAlbumReference() {
-		return this.albumReference;
+		return this.album == null ? 0 : this.album.getIdentity();
 	}
 	
-	protected void setAlbumReference (final long albumReference) {
-		this.albumReference = albumReference;
-	}
 	
 	@JsonbProperty()
-	@JsonbTransient
 	protected long getOwnerReference() {
-		return this.ownerReference;
+		return this.owner == null ? 0 : this.owner.getIdentity();
 	}
 	
-	protected void setOwnerReference (final long ownerReference) {
-		this.ownerReference = ownerReference;
-	}
 	
 	@JsonbProperty()
-	@JsonbTransient
 	protected long getRecordingReference() {
-		return this.recordingReference;
+		return this.recording == null ? 0 : this.recording.getIdentity();
 	}
-	
-	protected void setRecordingReference (final long recordingReference) {
-		this.recordingReference = recordingReference;
-	}
-	
 	
 }

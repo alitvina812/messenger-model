@@ -32,7 +32,7 @@ import java.util.Set;
 @PrimaryKeyJoinColumn(name = "personIdentity")
 @JsonbVisibility(JsonProtectedPropertyStrategy.class)
 public class Person extends BaseEntity{
-	public static enum Group {USER, ADMIN;}
+	static public enum Group {USER, ADMIN}
 	
 	@Column(nullable = false, updatable = true, unique = true)
 	@NotNull
@@ -67,12 +67,6 @@ public class Person extends BaseEntity{
 	@JoinColumn(name="avatarReference", nullable = false, updatable = true)
 	private Document avatar;
 	
-	@Column(nullable = false, updatable = false, insertable = true)
-	private long avatarReference;
-	
-	@Column(nullable = false, updatable = false, insertable = true)
-	private long[] trackReferences;
-	
 	public Person(Document avatar) {
 		this.passwordHash = HashTools.sha256HashCode("");
 		this.tracks = Collections.emptySet();
@@ -84,8 +78,7 @@ public class Person extends BaseEntity{
 		this(null);
 	}
 	
-	@JsonbProperty("person-email")
-	@JsonbTransient
+	@JsonbProperty
 	public String getEmail() {
 		return this.email;
 	}
@@ -95,7 +88,6 @@ public class Person extends BaseEntity{
 	}
 	
 	@JsonbProperty
-	@JsonbTransient
 	public byte[] getPasswordHash() {
 		return this.passwordHash;
 	}
@@ -104,14 +96,12 @@ public class Person extends BaseEntity{
 		this.passwordHash = HashTools.sha256HashCode(password);
 	}
 	
-	@JsonbProperty("person-tracklist")
 	@JsonbTransient
 	public Set<Track> getTracks() {
 		return this.tracks;
 	}
 	
-	@JsonbProperty("person-forename")
-	@JsonbTransient
+	@JsonbProperty
 	public String getForename() {
 		return this.forename;
 	}
@@ -120,8 +110,7 @@ public class Person extends BaseEntity{
 		this.forename = forename;
 	}
 	
-	@JsonbProperty("person-lastname")
-	@JsonbTransient
+	@JsonbProperty
 	public String getLastname() {
 		return this.lastname;
 	}
@@ -131,7 +120,6 @@ public class Person extends BaseEntity{
 	}
 
 	@JsonbProperty
-	@JsonbTransient
 	public Group getGroup () {
 		return this.group;
 	}
@@ -140,7 +128,6 @@ public class Person extends BaseEntity{
 		this.group = group;
 	}
 	
-	@JsonbProperty("avatar")
 	@JsonbTransient
 	public Document getAvatar() {
 		return avatar;
@@ -151,22 +138,14 @@ public class Person extends BaseEntity{
 	}
 	
 	@JsonbProperty()
-	@JsonbTransient
 	protected long getAvatarReference() {
-		return this.avatarReference;
+		return this.avatar == null ? 0 : this.avatar.getIdentity();
 	}
 	
-	protected void setAvatarReference (final long avatarReference) {
-		this.avatarReference = avatarReference;
-	}
 	
 	@JsonbProperty()
-	@JsonbTransient
 	protected long[] getTrackReferences() {
-		return this.trackReferences;
+		return this.tracks.stream().mapToLong(track -> track.getIdentity()).toArray();
 	}
 	
-	protected void setRecordingReference (final long[] trackReferences) {
-		this.trackReferences = trackReferences;
-	}
 }

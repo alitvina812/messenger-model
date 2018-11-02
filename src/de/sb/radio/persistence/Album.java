@@ -54,11 +54,6 @@ public class Album extends BaseEntity{
 	@OneToMany(mappedBy = "album", cascade = {CascadeType.REMOVE, CascadeType.REFRESH})
 	private Set<Track> tracks;
 	
-	@Column(nullable = false, updatable = false, insertable = true)
-	private long coverReference;
-	
-	@Column(nullable = false, updatable = false, insertable = true)
-	private long[] trackReferences;
 	
 	public Album(Document cover) {
 		this.cover = cover;
@@ -69,8 +64,7 @@ public class Album extends BaseEntity{
 		this(null);
 	}
 	
-	@JsonbProperty("album-title")
-	@JsonbTransient
+	@JsonbProperty
 	public String getTitle() {
 		return title;
 	}
@@ -79,8 +73,7 @@ public class Album extends BaseEntity{
 		this.title = title;
 	}
 	
-	@JsonbProperty("album-release-year")
-	@JsonbTransient
+	@JsonbProperty
 	public short getReleaseYear() {
 		return releaseYear;
 	}
@@ -89,8 +82,7 @@ public class Album extends BaseEntity{
 		this.releaseYear = releaseYear;
 	}
 
-	@JsonbProperty("album-track-count")
-	@JsonbTransient
+	@JsonbProperty
 	public byte getTrackCount() {
 		return trackCount;
 	}
@@ -99,36 +91,25 @@ public class Album extends BaseEntity{
 		this.trackCount = trackCount;
 	}
 
-	@JsonbProperty("album-cover")
 	@JsonbTransient
 	public Document getCover() {
 		return cover;
 	}
 
-	@JsonbProperty("album-tracklist")
 	@JsonbTransient
 	public Set<Track> getTracks() {
 		return tracks;
 	}
 	
 	@JsonbProperty()
-	@JsonbTransient
 	protected long getCoverReference() {
-		return this.coverReference;
+		return this.cover == null ? 0 : this.cover.getIdentity();
 	}
 	
-	protected void setCoverReference (final long coverReference) {
-		this.coverReference = coverReference;
-	}
 	
 	@JsonbProperty()
-	@JsonbTransient
 	protected long[] getTrackReferences() {
-		return this.trackReferences;
-	}
-	
-	protected void setRecordingReference (final long[] trackReferences) {
-		this.trackReferences = trackReferences;
+		return this.tracks.stream().mapToLong(track -> track.getIdentity()).toArray();
 	}
 
 }
