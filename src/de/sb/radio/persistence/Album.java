@@ -38,7 +38,7 @@ public class Album extends BaseEntity{
 	@Size(min = 1, max = 127)
 	private String title;
 	
-	@Column(name = "publication", nullable = false, updatable = true)
+	@Column(name = "releaseYear", nullable = false, updatable = true)
 	@NotEqual("0")
 	private short releaseYear;
 	
