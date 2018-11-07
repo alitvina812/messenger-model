@@ -4,7 +4,6 @@ import static de.sb.radio.rest.BasicAuthenticationFilter.REQUESTER_IDENTITY;
 import static javax.ws.rs.core.Response.Status.FORBIDDEN;
 
 import java.net.URI;
-import java.util.List;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -133,6 +132,7 @@ public class EntityService {
 	
 	@GET
 	@Path("/people")
+	@Produces(MediaType.APPLICATION_JSON)
 	public Person[] getPeople(
 			@QueryParam("resultOffset") int resultOffset,
 			@QueryParam("resultLimit") int resultLimit,
@@ -140,14 +140,20 @@ public class EntityService {
 			@QueryParam("forename") final String forename,
 			@QueryParam("lastname") final String lastname
 			) {
+		// TODO: sorted by family name, given name, email
 		final EntityManager radioManager = RestJpaLifecycleProvider.entityManager("radio");
 		
 		final TypedQuery<Person> query = radioManager.createQuery(CRITERIA_QUERY_JPQL_PERSON, Person.class);
 		query.setParameter("lastname", lastname);
 		query.setParameter("forename", forename);
 		query.setParameter("email", email);
+		query.setMaxResults(resultLimit);
+		query.setFirstResult(resultOffset);
 		
-		final Person[] people = query.getResultList().toArray(new Person[0]);
+		// funktioniert es so? ist es nicht ein array mit der Groesse 0?
+//		final Person[] people = query.getResultList().toArray(new Person[0]);
+		// das waere mein Vorschlag
+		final Person[] people = (Person[]) query.getResultList().toArray();
 		
 		return people;
 	}
@@ -172,25 +178,27 @@ public class EntityService {
 			if (template.getIdentity() == 0) {
 				// create new person
 				person = new Person(template.getAvatar());
-				person.setEmail(template.getEmail());
-				person.setForename(template.getForename());
-				person.setGroup(template.getGroup());
-				person.setLastname(template.getLastname());
-				person.setPasswordHash(password);
+
 			} else {
 				person = radioManager.find(Person.class, template.getIdentity());
-				person.setEmail(template.getEmail());
-				person.setForename(template.getForename());
-				person.setGroup(template.getGroup());
-				person.setLastname(template.getLastname());
-				person.setPasswordHash(password);
 			}
+			person.setEmail(template.getEmail());
+			person.setForename(template.getForename());
+			// make sure non-administrators don’t set their Group to ADMIN
+			if(person.getGroup() != Person.Group.ADMIN && template.getGroup() == Person.Group.ADMIN) {
+				throw new ClientErrorException(Status.FORBIDDEN);
+			} else {
+				person.setGroup(template.getGroup());					
+			}
+			person.setLastname(template.getLastname());
+			person.setPasswordHash(password);
 			
 			return person.getIdentity();
 	}
 	
 	@GET
 	@Path("/people/{id}")
+	@Produces(MediaType.APPLICATION_JSON)
 	public Person getPerson (
 		@HeaderParam(REQUESTER_IDENTITY) @Positive final long requesterIdentity,
 		@PathParam("id") @Positive final long personIdentity) { 
@@ -208,6 +216,7 @@ public class EntityService {
 	
 	@GET
 	@Path("/albums")
+	@Produces(MediaType.APPLICATION_JSON)
 	public Album[] getAlbums(
 			@QueryParam("resultOffset") int resultOffset,
 			@QueryParam("resultLimit") int resultLimit,
@@ -222,19 +231,43 @@ public class EntityService {
 		query.setParameter("title", title);
 		query.setParameter("releaseYear", releaseYear);
 		query.setParameter("trackCount", trackCount);
+		query.setFirstResult(resultOffset);
+		query.setMaxResults(resultLimit);
 		
-		final Album[] albums = query.getResultList().toArray(new Album[0]);
+		// see getPeople
+//		final Person[] people = query.getResultList().toArray(new Person[0]);
+		final Album[] albums = (Album[]) query.getResultList().toArray();
 		
 		return albums;
 	}
 
-//	@POST
-//	@Path("/albums")
-//	@Produces(MediaType.TEXT_PLAIN)
-//	@Consumes(MediaType.APPLICATION_JSON)
+	@POST
+	@Path("/albums")
+	@Produces(MediaType.TEXT_PLAIN)
+	@Consumes(MediaType.APPLICATION_JSON)
+	public long updateAlbum(
+		@HeaderParam(REQUESTER_IDENTITY) @Positive final long requesterIdentity,
+		@QueryParam("coverReference") final long coverReference,
+		final Album template) {
+		final EntityManager radioManager = RestJpaLifecycleProvider.entityManager("radio");
+		final Person requester = radioManager.find(Person.class, requesterIdentity);
+		if (requester.getGroup() != Person.Group.ADMIN){
+			throw new ClientErrorException(Status.FORBIDDEN);
+		}
+		Album album;
+		if(template.getIdentity() == 0) {
+			album = new Album(template.getCover());	
+		} else {
+			album = radioManager.find(Album.class, template.getIdentity());
+		}
+		album.setTitle(template.getTitle());
+		album.setReleaseYear(template.getReleaseYear());		
+		return album.getIdentity();
+	}
 	
 	@GET
 	@Path("/tracks")
+	@Produces(MediaType.APPLICATION_JSON)
 	public Track[] getTracks(
 			@QueryParam("name") String name,
 			@QueryParam("artist") String artist,
@@ -248,8 +281,9 @@ public class EntityService {
 		query.setParameter("artist", artist);
 		query.setParameter("genre", genre);
 		query.setParameter("ordinal", ordinal);
-		
-		final Track[] tracks = query.getResultList().toArray(new Track[0]);
+		// see getPeople
+//		final Track[] tracks = query.getResultList().toArray(new Track[0]);
+		final Track[] tracks = (Track[]) query.getResultList().toArray();
 		
 		return tracks;
 	}
