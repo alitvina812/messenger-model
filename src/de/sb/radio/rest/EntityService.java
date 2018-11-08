@@ -3,18 +3,12 @@ package de.sb.radio.rest;
 import static de.sb.radio.rest.BasicAuthenticationFilter.REQUESTER_IDENTITY;
 import static javax.ws.rs.core.Response.Status.FORBIDDEN;
 
-import java.net.URI;
-
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 import javax.persistence.PersistenceException;
 import javax.persistence.RollbackException;
-import javax.persistence.Query;
 import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Root;
 import javax.validation.constraints.Positive;
 import javax.ws.rs.ClientErrorException;
 import javax.ws.rs.Consumes;
@@ -29,7 +23,6 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
-import javax.ws.rs.core.UriBuilder;
 
 import de.sb.radio.persistence.Album;
 import de.sb.radio.persistence.BaseEntity;
@@ -56,7 +49,8 @@ public class EntityService {
 	static private final String CRITERIA_QUERY_JPQL_PERSON = "select p from Person as p where"
 			+ "(:lastname is null or p.lastname = :lastname) and "
 			+ "(:forename is null or p.forename = :forename) and "
-			+ "(:email is null or p.email = :email)";
+			+ "(:email is null or p.email = :email)"
+			+ "ORDER BY p.lastname, p.forename, p.email";
 	
 	static private final String CRITERIA_QUERY_JPQL_ALBUM = "select a from Album as a where"
 			+ "(:title is null or a.title = :title) and "
@@ -71,6 +65,9 @@ public class EntityService {
 			+ "(:genre is null or t.genre = :genre) and "
 			+ "(:ordinal is null or t.ordinal >= :ordinal) and "
 			+ "(:ordinal is null or t.ordinal <= :ordinal)";
+	
+	static private final String CRITERIA_QUERY_JPQL_GENRE = "select distinct Track.g from Track as g";
+			
 	
 	/**
 	 * Returns the entity with the given identity.
@@ -138,11 +135,8 @@ public class EntityService {
 			@QueryParam("resultLimit") int resultLimit,
 			@QueryParam("email") final String email,
 			@QueryParam("forename") final String forename,
-			@QueryParam("lastname") final String lastname
-			) {
-		// TODO: sorted by family name, given name, email
+			@QueryParam("lastname") final String lastname) {
 		final EntityManager radioManager = RestJpaLifecycleProvider.entityManager("radio");
-		
 		final TypedQuery<Person> query = radioManager.createQuery(CRITERIA_QUERY_JPQL_PERSON, Person.class);
 		query.setParameter("lastname", lastname);
 		query.setParameter("forename", forename);
@@ -154,7 +148,6 @@ public class EntityService {
 //		final Person[] people = query.getResultList().toArray(new Person[0]);
 		// das waere mein Vorschlag
 		final Person[] people = (Person[]) query.getResultList().toArray();
-		
 		return people;
 	}
 	
@@ -165,12 +158,12 @@ public class EntityService {
 	public long updatePerson (
 			@HeaderParam(REQUESTER_IDENTITY) @Positive final long requesterIdentity,
 			@HeaderParam("Set-Password") final String password,
-			final Person template) {
-		
+			@QueryParam("avatarReference") final long avatarReference,
+			final Person template){
 			final EntityManager radioManager = RestJpaLifecycleProvider.entityManager("radio");
 			final Person requester = radioManager.find(Person.class, requesterIdentity);
 			if (requester.getGroup() != Person.Group.ADMIN 
-					&& requester.getIdentity() != template.getIdentity()){
+					&& requester.getIdentity() != template.getIdentity()) {
 				// requester is not admin and not self
 				throw new ClientErrorException(Status.FORBIDDEN);
 			}
@@ -178,20 +171,27 @@ public class EntityService {
 			if (template.getIdentity() == 0) {
 				// create new person
 				person = new Person(template.getAvatar());
-
 			} else {
 				person = radioManager.find(Person.class, template.getIdentity());
 			}
 			person.setEmail(template.getEmail());
 			person.setForename(template.getForename());
-			// make sure non-administrators don’t set their Group to ADMIN
+			// make sure non-administrators don't set their Group to ADMIN
 			if(person.getGroup() != Person.Group.ADMIN && template.getGroup() == Person.Group.ADMIN) {
 				throw new ClientErrorException(Status.FORBIDDEN);
 			} else {
 				person.setGroup(template.getGroup());					
 			}
 			person.setLastname(template.getLastname());
-			person.setPasswordHash(password);
+			
+			// check if new password has to be set
+			if (password != null && !password.isEmpty()) {
+				person.setPasswordHash(password);
+			}
+			
+			// set avatar to person
+			Document avatar = (Document)queryEntity(avatarReference);
+			person.setAvatar(avatar);
 			
 			return person.getIdentity();
 	}
@@ -234,9 +234,10 @@ public class EntityService {
 		query.setFirstResult(resultOffset);
 		query.setMaxResults(resultLimit);
 		
-		// see getPeople
 //		final Person[] people = query.getResultList().toArray(new Person[0]);
 		final Album[] albums = (Album[]) query.getResultList().toArray();
+		
+		// TODO: 2nd level cache "entityManager.find"
 		
 		return albums;
 	}
@@ -269,42 +270,71 @@ public class EntityService {
 	@Path("/tracks")
 	@Produces(MediaType.APPLICATION_JSON)
 	public Track[] getTracks(
+			@QueryParam("resultOffset") int resultOffset,
+			@QueryParam("resultLimit") int resultLimit,
 			@QueryParam("name") String name,
 			@QueryParam("artist") String artist,
 			@QueryParam("genre") String genre,
 			@QueryParam("ordinal") byte ordinal
 			) {
-		final EntityManager radioManager = RestJpaLifecycleProvider.entityManager("radio");
-		
+		final EntityManager radioManager = RestJpaLifecycleProvider.entityManager("radio");	
 		final TypedQuery<Track> query = radioManager.createQuery(CRITERIA_QUERY_JPQL_TRACK, Track.class);
 		query.setParameter("name", name);
 		query.setParameter("artist", artist);
 		query.setParameter("genre", genre);
 		query.setParameter("ordinal", ordinal);
-		// see getPeople
+		query.setMaxResults(resultLimit);
+		query.setFirstResult(resultOffset);
+
 //		final Track[] tracks = query.getResultList().toArray(new Track[0]);
 		final Track[] tracks = (Track[]) query.getResultList().toArray();
+		
+		// TODO: 2nd level cache "entityManager.find"
 		
 		return tracks;
 	}
 
-//	@POST
-//	@Path("/tracks")
-//	@Produces(MediaType.TEXT_PLAIN)
-//	@Consumes(MediaType.APPLICATION_JSON)	
+	@POST
+	@Path("/tracks")
+	@Produces(MediaType.TEXT_PLAIN)
+	@Consumes(MediaType.APPLICATION_JSON)
+	public long updateTrack(
+			@HeaderParam(REQUESTER_IDENTITY) @Positive final long requesterIdentity,
+			@QueryParam("recordingReference") final long recordingReference,
+			@QueryParam("albumReference") final long albumReference,
+			@QueryParam("ownerReference") final long ownerReference,
+			final Track template) {
+	
+	final EntityManager radioManager = RestJpaLifecycleProvider.entityManager("radio");
+	final Person requester = radioManager.find(Person.class, requesterIdentity);
+	if (requester.getGroup() != Person.Group.ADMIN){
+		throw new ClientErrorException(Status.FORBIDDEN);
+	}
+	Track track;
+	if(template.getIdentity() == 0) {
+		track = new Track(template.getAlbum(), template.getOwner(), template.getRecording());	
+	} else {
+		track = radioManager.find(Track.class, template.getIdentity());
+	}
+	track.setName(template.getName());
+	track.setArtist(template.getArtist());
+	track.setGenre(template.getGenre());
+	track.setOrdinal(template.getOrdinal());
+	
+	return track.getIdentity();
+}
 
-//	@GET
-//	@Path("tracks/genres")
-//	@Produces(MediaType.APPLICATION_JSON)
-//	public Track[] getGenres(
-//			@QueryParam("genre") String genre) {
-//		final EntityManager radioManager = RestJpaLifecycleProvider.entityManager("radio");
-//		final TypedQuery<Track> query = radioManager.createQuery(CRITERIA_QUERY_JPQL_TRACK_GENRE, Track.class);
-//		query.setParameter("genre", genre);
-//		final Track[] genres = query.getResultList().toArray(new Track[0]);
+	@GET
+	@Path("tracks/genres")
+	@Produces(MediaType.APPLICATION_JSON)
+	public String[] getGenres() {
+		final EntityManager radioManager = RestJpaLifecycleProvider.entityManager("radio");
+		final TypedQuery<String> query = radioManager.createQuery(CRITERIA_QUERY_JPQL_GENRE, String.class);
 		
-//		return genres;
-//	}
+		final String[] genres = (String[]) query.getResultList().toArray();
+
+		return genres;
+	}
 	
 	@GET
 	@Path("/documents/{id}")
@@ -321,4 +351,5 @@ public class EntityService {
 //	@POST
 //	@Path("documents")
 //	@Consumes(MediaType.TEXT_PLAIN)
+
 }
