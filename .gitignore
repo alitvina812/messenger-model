@@ -8,3 +8,4 @@
 *.ctxt
 
 .DS_Store
+messenger-test/src/META-INF/MANIFEST.MF
