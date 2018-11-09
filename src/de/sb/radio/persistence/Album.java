@@ -101,13 +101,13 @@ public class Album extends BaseEntity{
 		return tracks;
 	}
 	
-	@JsonbProperty()
+	@JsonbProperty
 	protected long getCoverReference() {
 		return this.cover == null ? 0 : this.cover.getIdentity();
 	}
 	
 	
-	@JsonbProperty()
+	@JsonbProperty
 	protected long[] getTrackReferences() {
 		return this.tracks.stream().mapToLong(track -> track.getIdentity()).toArray();
 	}

@@ -63,7 +63,7 @@ public abstract class BaseEntity implements Comparable<BaseEntity> {
 	 * instance has been inserted into the database.
 	 * @return the identity (primary key)
 	 */
-	@JsonbProperty @JsonbTransient
+	@JsonbProperty
 	public long getIdentity () {
 		return this.identity;
 	}
@@ -82,7 +82,7 @@ public abstract class BaseEntity implements Comparable<BaseEntity> {
 	 * Returns the version. This property is currently inactive.
 	 * @return the version
 	 */
-	@JsonbProperty @JsonbTransient
+	@JsonbProperty
 	public int getVersion () {
 		return this.version;
 	}

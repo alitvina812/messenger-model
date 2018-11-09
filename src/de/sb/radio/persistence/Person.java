@@ -55,10 +55,10 @@ public class Person extends BaseEntity{
 	@Size(min = 1, max = 31)
 	private String forename;
 	
-	@Column(name = "surname", nullable = false, updatable = true)
+	@Column(nullable = false, updatable = true)
 	@NotNull
 	@Size(min = 1, max = 31)
-	private String lastname;
+	private String surname;
 	
 	@OneToMany(mappedBy="owner", cascade = {CascadeType.REMOVE, CascadeType.REFRESH})
 	private Set<Track> tracks;
@@ -87,13 +87,13 @@ public class Person extends BaseEntity{
 		this.email = email;
 	}
 	
-	@JsonbProperty
+	@JsonbTransient
 	public byte[] getPasswordHash() {
 		return this.passwordHash;
 	}
 	
-	public void setPasswordHash(String password) {
-		this.passwordHash = HashTools.sha256HashCode(password);
+	public void setPasswordHash(byte[] passwordHash) {
+		this.passwordHash = passwordHash;
 	}
 	
 	@JsonbTransient
@@ -111,12 +111,12 @@ public class Person extends BaseEntity{
 	}
 	
 	@JsonbProperty
-	public String getLastname() {
-		return this.lastname;
+	public String getSurname() {
+		return this.surname;
 	}
 	
-	public void setLastname(String lastname) {
-		this.lastname = lastname;
+	public void setSurname(String surname) {
+		this.surname = surname;
 	}
 
 	@JsonbProperty

@@ -115,19 +115,19 @@ public class Track extends BaseEntity{
 		return recording;
 	}
 
-	@JsonbProperty()
+	@JsonbProperty
 	protected long getAlbumReference() {
 		return this.album == null ? 0 : this.album.getIdentity();
 	}
 	
 	
-	@JsonbProperty()
+	@JsonbProperty
 	protected long getOwnerReference() {
 		return this.owner == null ? 0 : this.owner.getIdentity();
 	}
 	
 	
-	@JsonbProperty()
+	@JsonbProperty
 	protected long getRecordingReference() {
 		return this.recording == null ? 0 : this.recording.getIdentity();
 	}

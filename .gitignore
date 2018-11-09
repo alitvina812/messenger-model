@@ -9,3 +9,5 @@
 
 .DS_Store
 messenger-test/src/META-INF/MANIFEST.MF
+bin/META-INF/persistence.xml
+bin/META-INF/persistence.xml

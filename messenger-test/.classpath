@@ -11,6 +11,6 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/jersey-2.26"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/json-yasson-1.0"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/5"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/messenger-model"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/radio-model"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
