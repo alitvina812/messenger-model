@@ -229,8 +229,10 @@ public class EntityService {
 	@GET
 	@Path("/people/{id}")
 	@Produces(MediaType.APPLICATION_JSON)
-	public Person getPerson(@HeaderParam(REQUESTER_IDENTITY) @Positive final long requesterIdentity,
-			@PathParam("id") @Positive final long personIdentity) {
+	public Person getPerson(
+			@HeaderParam(REQUESTER_IDENTITY) @Positive final long requesterIdentity,
+			@PathParam("id") @Positive final long personIdentity
+	) {
 		// Check if person id is zero
 		long queryPerson = personIdentity;
 		if (personIdentity == 0) {
@@ -246,35 +248,40 @@ public class EntityService {
 	@GET
 	@Path("/albums")
 	@Produces(MediaType.APPLICATION_JSON)
-	public Album[] getAlbums(@QueryParam("resultOffset") int resultOffset, @QueryParam("resultLimit") int resultLimit,
-			@QueryParam("title") String title, @QueryParam("releaseYear") short releaseYear,
-			@QueryParam("trackCount") byte trackCount) {
+	public List<Album> getAlbums(
+			@QueryParam("resultOffset") int resultOffset, 
+			@QueryParam("resultLimit") int resultLimit,
+			@QueryParam("title") String title, 
+			@QueryParam("releaseYear") short releaseYear,
+			@QueryParam("trackCount") byte trackCount
+	) {
 		final EntityManager radioManager = RestJpaLifecycleProvider.entityManager("radio");
-		try {
-			final TypedQuery<Album> query = radioManager.createQuery(CRITERIA_QUERY_JPQL_ALBUM, Album.class);
-			query.setParameter("title", title);
-			query.setParameter("releaseYear", releaseYear);
-			query.setParameter("trackCount", trackCount);
-			query.setFirstResult(resultOffset);
-			query.setMaxResults(resultLimit);
-
-//			final Person[] people = query.getResultList().toArray(new Person[0]);
-			final Album[] albums = (Album[]) query.getResultList().toArray();
-
-			// TODO: 2nd level cache "entityManager.find"
-
-			return albums;
-		} catch (BadRequestException exception) {
-			throw new ClientErrorException(400);
+		final TypedQuery<Long> query = radioManager.createQuery(CRITERIA_QUERY_JPQL_ALBUM, Long.class);
+		query.setParameter("title", title);
+		query.setParameter("releaseYear", releaseYear);
+		query.setParameter("trackCount", trackCount);
+		query.setFirstResult(resultOffset);
+		query.setMaxResults(resultLimit);
+		
+		final List<Long> albumsReferences = query.getResultList();
+		final List<Album> albums = new ArrayList<>();
+		for (final long reference : albumsReferences) {
+			final Album album = radioManager.find(Album.class, reference);
+			if (album != null)
+				albums.add(album);
 		}
+
+		return albums;
 	}
 
 	@POST
 	@Path("/albums")
 	@Produces(MediaType.TEXT_PLAIN)
 	@Consumes(MediaType.APPLICATION_JSON)
-	public long updateAlbum(@HeaderParam(REQUESTER_IDENTITY) @Positive final long requesterIdentity,
-			@QueryParam("coverReference") final long coverReference, final Album template) {
+	public long updateAlbum(
+			@HeaderParam(REQUESTER_IDENTITY) @Positive final long requesterIdentity,
+			@QueryParam("coverReference") final long coverReference, final Album template
+	) {
 		final EntityManager radioManager = RestJpaLifecycleProvider.entityManager("radio");
 		final Person requester = radioManager.find(Person.class, requesterIdentity);
 		if (requester.getGroup() != Person.Group.ADMIN) {
@@ -294,28 +301,33 @@ public class EntityService {
 	@GET
 	@Path("/tracks")
 	@Produces(MediaType.APPLICATION_JSON)
-	public Track[] getTracks(@QueryParam("resultOffset") int resultOffset, @QueryParam("resultLimit") int resultLimit,
-			@QueryParam("name") String name, @QueryParam("artist") String artist, @QueryParam("genre") String genre,
-			@QueryParam("ordinal") byte ordinal) {
+	public List<Track> getTracks(
+			@QueryParam("resultOffset") int resultOffset, 
+			@QueryParam("resultLimit") int resultLimit,
+			@QueryParam("name") String name, 
+			@QueryParam("artist") String artist, 
+			@QueryParam("genre") String genre,
+			@QueryParam("ordinal") byte ordinal
+	) {
 		final EntityManager radioManager = RestJpaLifecycleProvider.entityManager("radio");
-		try {
-			final TypedQuery<Track> query = radioManager.createQuery(CRITERIA_QUERY_JPQL_TRACK, Track.class);
-			query.setParameter("name", name);
-			query.setParameter("artist", artist);
-			query.setParameter("genre", genre);
-			query.setParameter("ordinal", ordinal);
-			query.setMaxResults(resultLimit);
-			query.setFirstResult(resultOffset);
-
-//		final Track[] tracks = query.getResultList().toArray(new Track[0]);
-			final Track[] tracks = (Track[]) query.getResultList().toArray();
-
-			// TODO: 2nd level cache "entityManager.find"
-
-			return tracks;
-		} catch (BadRequestException exception) {
-			throw new ClientErrorException(400);
+		final TypedQuery<Long> query = radioManager.createQuery(CRITERIA_QUERY_JPQL_TRACK, Long.class);
+		query.setParameter("name", name);
+		query.setParameter("artist", artist);
+		query.setParameter("genre", genre);
+		query.setParameter("ordinal", ordinal);
+		query.setMaxResults(resultLimit);
+		query.setFirstResult(resultOffset);
+		
+		final List<Long> tracksReferences = query.getResultList();
+		final List<Track> tracks = new ArrayList<>();
+		for (final long reference : tracksReferences) {
+			final Track track = radioManager.find(Track.class, reference);
+			if (track != null)
+				tracks.add(track);
 		}
+
+		return tracks;
+
 	}
 
 	@POST
@@ -348,18 +360,20 @@ public class EntityService {
 	@GET
 	@Path("tracks/genres")
 	@Produces(MediaType.APPLICATION_JSON)
-	public String[] getGenres() {
+	public List<String> getGenres() {
 		final EntityManager radioManager = RestJpaLifecycleProvider.entityManager("radio");
 		final TypedQuery<String> query = radioManager.createQuery(CRITERIA_QUERY_JPQL_GENRE, String.class);
-		final String[] genres = (String[]) query.getResultList().toArray();
+		final List<String> genres = query.getResultList();
 
 		return genres;
 	}
 
 	@GET
 	@Path("/documents/{id}")
-	public Response getDocument(@HeaderParam(REQUESTER_IDENTITY) @Positive final long requesterIdentity,
-			@PathParam("id") @Positive final long documentIdentity) {
+	public Response getDocument(
+			@HeaderParam(REQUESTER_IDENTITY) @Positive final long requesterIdentity,
+			@PathParam("id") @Positive final long documentIdentity
+	) {
 		final EntityManager radioManager = RestJpaLifecycleProvider.entityManager("radio");
 		final Document document = radioManager.find(Document.class, documentIdentity);
 		if (document == null)
