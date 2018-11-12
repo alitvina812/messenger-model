@@ -278,23 +278,45 @@ public class EntityService {
 	@Path("/albums")
 	@Produces(MediaType.TEXT_PLAIN)
 	@Consumes(MediaType.APPLICATION_JSON)
-	public long updateAlbum(
+	public long modifyAlbum(
 			@HeaderParam(REQUESTER_IDENTITY) @Positive final long requesterIdentity,
-			@QueryParam("coverReference") final long coverReference, final Album template
+			@QueryParam("coverReference") final Long coverReference, 
+			@NotNull @Valid final Album template
 	) {
 		final EntityManager radioManager = RestJpaLifecycleProvider.entityManager("radio");
 		final Person requester = radioManager.find(Person.class, requesterIdentity);
 		if (requester.getGroup() != Person.Group.ADMIN) {
 			throw new ClientErrorException(Status.FORBIDDEN);
 		}
+		
+		final boolean insert = template.getIdentity() == 0;
 		Album album;
-		if (template.getIdentity() == 0) {
-			album = new Album(template.getCover());
+		final Document cover = radioManager.find(Document.class, coverReference==null ? 1L : coverReference);
+		if (cover == null) 
+			throw new ClientErrorException(Status.NOT_FOUND);
+		if (insert) {
+			album = new Album(cover);
 		} else {
 			album = radioManager.find(Album.class, template.getIdentity());
+			album.setCover(cover);
 		}
 		album.setTitle(template.getTitle());
 		album.setReleaseYear(template.getReleaseYear());
+		
+		if(insert) {
+			radioManager.persist(album);
+		} else {
+			radioManager.flush();
+		}
+		
+		try {
+			radioManager.getTransaction().commit();
+		} catch (PersistenceException e) {
+			throw new ClientErrorException(Status.CONFLICT);
+		} finally {
+			radioManager.getTransaction().begin();
+		}
+		
 		return album.getIdentity();
 	}
 
@@ -334,26 +356,52 @@ public class EntityService {
 	@Path("/tracks")
 	@Produces(MediaType.TEXT_PLAIN)
 	@Consumes(MediaType.APPLICATION_JSON)
-	public long updateTrack(@HeaderParam(REQUESTER_IDENTITY) @Positive final long requesterIdentity,
-			@QueryParam("recordingReference") final long recordingReference,
-			@QueryParam("albumReference") final long albumReference,
-			@QueryParam("ownerReference") final long ownerReference, final Track template) {
-
+	public long modifyTrack(
+			@HeaderParam(REQUESTER_IDENTITY) @Positive final long requesterIdentity,
+			@QueryParam("recordingReference") final Long recordingReference,
+			@QueryParam("albumReference") final Long albumReference,
+			@QueryParam("ownerReference") final Long ownerReference, 
+			final Track template
+	) {
 		final EntityManager radioManager = RestJpaLifecycleProvider.entityManager("radio");
 		final Person requester = radioManager.find(Person.class, requesterIdentity);
 		if (requester.getGroup() != Person.Group.ADMIN) {
 			throw new ClientErrorException(Status.FORBIDDEN);
 		}
+		
+		final boolean insert = template.getIdentity() == 0;
 		Track track;
-		if (template.getIdentity() == 0) {
+		final Document recording = radioManager.find(Document.class, recordingReference==null ? 1L : recordingReference);
+		final Album album = radioManager.find(Album.class, albumReference==null ? 1L : albumReference);
+		final Person owner = radioManager.find(Person.class, ownerReference==null ? 1L : ownerReference);
+		if (recording == null || album == null || owner == null)
+			throw new ClientErrorException(Status.NOT_FOUND);
+		if (insert) {
 			track = new Track(template.getAlbum(), template.getOwner(), template.getRecording());
 		} else {
 			track = radioManager.find(Track.class, template.getIdentity());
+			track.setOwner(owner);
+			track.setAlbum(album);
+			track.setRecording(recording);
 		}
 		track.setName(template.getName());
 		track.setArtist(template.getArtist());
 		track.setGenre(template.getGenre());
 		track.setOrdinal(template.getOrdinal());
+		
+		if(insert) {
+			radioManager.persist(track);
+		} else {
+			radioManager.flush();
+		}
+		
+		try {
+			radioManager.getTransaction().commit();
+		} catch (PersistenceException e) {
+			throw new ClientErrorException(Status.CONFLICT);
+		} finally {
+			radioManager.getTransaction().begin();
+		}
 		return track.getIdentity();
 	}
 
@@ -389,6 +437,7 @@ public class EntityService {
 			byte[] content,
 			@HeaderParam ("Content-type") String contentType
 	) {
+		// TODO
 		return 0;
 	}
 

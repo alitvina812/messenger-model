@@ -96,6 +96,10 @@ public class Album extends BaseEntity{
 		return cover;
 	}
 
+	public void setCover(Document cover) {
+		this.cover = cover;
+	}
+
 	@JsonbTransient
 	public Set<Track> getTracks() {
 		return tracks;

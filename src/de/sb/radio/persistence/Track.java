@@ -131,5 +131,17 @@ public class Track extends BaseEntity{
 	protected long getRecordingReference() {
 		return this.recording == null ? 0 : this.recording.getIdentity();
 	}
+
+	public void setAlbum(Album album) {
+		this.album = album;
+	}
+
+	public void setOwner(Person owner) {
+		this.owner = owner;
+	}
+
+	public void setRecording(Document recording) {
+		this.recording = recording;
+	}
 	
 }
