@@ -60,19 +60,22 @@ public class EntityService {
 			+ "(:forename is null or p.forename = :forename) and "
 			+ "(:email is null or p.email = :email)";
 
-	static private final String CRITERIA_QUERY_JPQL_ALBUM = "select a from Album as a where"
+	static private final String CRITERIA_QUERY_JPQL_ALBUM = "select a.identity from Album as a where "
 			+ "(:title is null or a.title = :title) and "
 			+ "(:releaseYear is null or a.releaseYear >= :releaseYear) and "
 			+ "(:releaseYear is null or a.releaseYear <= :releaseYear) and "
 			+ "(:trackCount is null or a.trackCount >= :trackCount) and "
 			+ "(:trackCount is null or a.trackCount <= :trackCount)";
 
-	static private final String CRITERIA_QUERY_JPQL_TRACK = "select t from Track as t where"
+	static private final String CRITERIA_QUERY_JPQL_TRACK = "select t.identity from Track as t where "
 			+ "(:name is null or t.name = :name) and " + "(:artist is null or t.artist = :artist) and "
 			+ "(:genre is null or t.genre = :genre) and " + "(:ordinal is null or t.ordinal >= :ordinal) and "
 			+ "(:ordinal is null or t.ordinal <= :ordinal)";
 
 	static private final String CRITERIA_QUERY_JPQL_GENRE = "select distinct Track.g from Track as g";
+	
+	static private final String CRITERIA_QUERY_JPQL_DOCUMENT = "select d.identity from Document as d where "
+			+ "(:contentHash is null or d.contentHash = :contentHash)";
 
 	/**
 	 * Returns the entity with the given identity.
@@ -223,6 +226,7 @@ public class EntityService {
 		} finally {
 			radioManager.getTransaction().begin();
 		}
+		radioManager.getEntityManagerFactory().getCache().evict(Person.class, template.getIdentity());
 		return person.getIdentity();
 	}
 
@@ -316,7 +320,7 @@ public class EntityService {
 		} finally {
 			radioManager.getTransaction().begin();
 		}
-		
+		radioManager.getEntityManagerFactory().getCache().evict(Album.class, template.getIdentity());
 		return album.getIdentity();
 	}
 
@@ -402,6 +406,7 @@ public class EntityService {
 		} finally {
 			radioManager.getTransaction().begin();
 		}
+		radioManager.getEntityManagerFactory().getCache().evict(Track.class, template.getIdentity());
 		return track.getIdentity();
 	}
 
@@ -437,8 +442,38 @@ public class EntityService {
 			byte[] content,
 			@HeaderParam ("Content-type") String contentType
 	) {
-		// TODO
-		return 0;
+		final EntityManager radioManager = RestJpaLifecycleProvider.entityManager("radio");
+		byte[] contentHash = HashTools.sha256HashCode(content);
+		final TypedQuery<Long> query = radioManager.createQuery(CRITERIA_QUERY_JPQL_DOCUMENT, Long.class);
+		query.setParameter("contentHash", contentHash);
+		List<Long> queryResult = query.getResultList();
+		boolean insert = queryResult.isEmpty();
+		Document document;
+		if (insert) {
+			document = new Document();
+			document.setContent(content);
+		} else {
+			long key = queryResult.get(0);
+			document = radioManager.find(Document.class, key);
+		}
+		document.setContentType(contentType);
+		
+		if(insert) {
+			radioManager.persist(document);
+		} else {
+			radioManager.flush();
+		}
+		
+		try {
+			radioManager.getTransaction().commit();
+		} catch (PersistenceException e) {
+			throw new ClientErrorException(Status.CONFLICT);
+		} finally {
+			radioManager.getTransaction().begin();
+		}
+		return document.getIdentity();
+		
+		// hier bin ich mir nicht sicher
 	}
 
 }
