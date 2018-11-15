@@ -14,8 +14,8 @@ import javax.persistence.PersistenceException;
 import javax.persistence.RollbackException;
 import javax.persistence.TypedQuery;
 import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Positive;
+//import javax.validation.constraints.NotNull;
+import javax.validation.constraints.*;
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.ClientErrorException;
 import javax.ws.rs.Consumes;
@@ -142,13 +142,23 @@ public class EntityService {
 		radioManager.getEntityManagerFactory().getCache().evict(BaseEntity.class, entityIdentity);
 	}
 
+	/**
+	 * Returns a list of all persons
+	 * 
+	 * @param resultOffset
+	 * @param resultLimit
+	 * @param email email address of person
+	 * @param forename forename of person
+	 * @param surname surnname 
+	 * @return list of all persons (HTTP 200)
+	 */
 	@GET
 	@Path("/people")
 	@Produces(MediaType.APPLICATION_JSON)
 	public List<Person> getPeople(
-			@QueryParam("resultOffset") int resultOffset,
-			@QueryParam("resultLimit") int resultLimit, 
-			@QueryParam("email") final String email,
+			@QueryParam("resultOffset") @PositiveOrZero int resultOffset,
+			@QueryParam("resultLimit")  @PositiveOrZero int resultLimit, 
+			@QueryParam("email") @Email final String email,
 			@QueryParam("forename") final String forename, 
 			@QueryParam("surname") final String surname
 	) {
@@ -180,7 +190,7 @@ public class EntityService {
 	public long modifyPerson(
 			@HeaderParam(REQUESTER_IDENTITY) @Positive final long requesterIdentity,
 			@HeaderParam("Set-Password") final String password,
-			@QueryParam("avatarReference") final Long avatarReference, 
+			@QueryParam("avatarReference") @Positive final Long avatarReference, 
 			@NotNull @Valid final Person template
 	) {
 		final EntityManager radioManager = RestJpaLifecycleProvider.entityManager("radio");
@@ -253,11 +263,11 @@ public class EntityService {
 	@Path("/albums")
 	@Produces(MediaType.APPLICATION_JSON)
 	public List<Album> getAlbums(
-			@QueryParam("resultOffset") int resultOffset, 
-			@QueryParam("resultLimit") int resultLimit,
+			@QueryParam("resultOffset") @PositiveOrZero int resultOffset, 
+			@QueryParam("resultLimit") @PositiveOrZero int resultLimit,
 			@QueryParam("title") String title, 
-			@QueryParam("releaseYear") short releaseYear,
-			@QueryParam("trackCount") byte trackCount
+			@QueryParam("releaseYear") @PositiveOrZero short releaseYear,
+			@QueryParam("trackCount") @PositiveOrZero byte trackCount
 	) {
 		final EntityManager radioManager = RestJpaLifecycleProvider.entityManager("radio");
 		final TypedQuery<Long> query = radioManager.createQuery(CRITERIA_QUERY_JPQL_ALBUM, Long.class);
@@ -284,7 +294,7 @@ public class EntityService {
 	@Consumes(MediaType.APPLICATION_JSON)
 	public long modifyAlbum(
 			@HeaderParam(REQUESTER_IDENTITY) @Positive final long requesterIdentity,
-			@QueryParam("coverReference") final Long coverReference, 
+			@QueryParam("coverReference") @PositiveOrZero final Long coverReference, 
 			@NotNull @Valid final Album template
 	) {
 		final EntityManager radioManager = RestJpaLifecycleProvider.entityManager("radio");
@@ -328,12 +338,12 @@ public class EntityService {
 	@Path("/tracks")
 	@Produces(MediaType.APPLICATION_JSON)
 	public List<Track> getTracks(
-			@QueryParam("resultOffset") int resultOffset, 
-			@QueryParam("resultLimit") int resultLimit,
+			@QueryParam("resultOffset") @PositiveOrZero int resultOffset, 
+			@QueryParam("resultLimit") @PositiveOrZero int resultLimit,
 			@QueryParam("name") String name, 
 			@QueryParam("artist") String artist, 
 			@QueryParam("genre") String genre,
-			@QueryParam("ordinal") byte ordinal
+			@QueryParam("ordinal") @PositiveOrZero byte ordinal
 	) {
 		final EntityManager radioManager = RestJpaLifecycleProvider.entityManager("radio");
 		final TypedQuery<Long> query = radioManager.createQuery(CRITERIA_QUERY_JPQL_TRACK, Long.class);
