@@ -114,8 +114,8 @@ public class ApplicationContainer {
 	static private URI newServiceURI (final int port, final boolean secure) throws UnknownHostException {
 		try {
 			final String scheme = secure ? "https" : "http";
-			//final String hostName = InetAddress.getLocalHost().getCanonicalHostName();
-			final String hostName = "radio-web";
+			final String hostName = InetAddress.getLocalHost().getCanonicalHostName();
+			//final String hostName = "radio-web";
 			return new URI(scheme, null, hostName, port, "/services", null, null);
 		} catch (final URISyntaxException exception) {
 			throw new AssertionError(exception);
