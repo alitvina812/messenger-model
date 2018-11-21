@@ -149,7 +149,7 @@ public class EntityService {
 	 * @param resultLimit
 	 * @param email email address of person
 	 * @param forename forename of person
-	 * @param surname surnname 
+	 * @param surname surname 
 	 * @return list of all persons (HTTP 200)
 	 */
 	@GET
@@ -285,8 +285,9 @@ public class EntityService {
 				albums.add(album);
 		}
 
+		albums.sort(Comparator.comparing(Album::getTitle).thenComparing(Album::getReleaseYear));
 		return albums;
-	} //query albums sortieren
+	} //query albums sortieren --> done
 
 	@POST
 	@Path("/albums")
@@ -302,18 +303,22 @@ public class EntityService {
 		if (requester == null || (requester.getGroup() != Person.Group.ADMIN)) {
 			throw new ClientErrorException(Status.FORBIDDEN);
 		}
-		//modify album, if/else zur für album korrigieren
+		//modify album, if/else zur für album korrigieren --> done
 		final boolean insert = template.getIdentity() == 0;
-		Album album;
 		final Document cover = radioManager.find(Document.class, coverReference==null ? 1L : coverReference);
-		if (cover == null) 
-			throw new ClientErrorException(Status.NOT_FOUND);
+		Album album;
 		if (insert) {
+			if (cover == null) 
+				throw new ClientErrorException(Status.NOT_FOUND);
 			album = new Album(cover);
 		} else {
 			album = radioManager.find(Album.class, template.getIdentity());
-			album.setCover(cover);
+			if(album == null) 
+				throw new ClientErrorException(Status.NOT_FOUND);
+			if(cover != null)
+				album.setCover(cover);
 		}
+		
 		album.setTitle(template.getTitle());
 		album.setReleaseYear(template.getReleaseYear());
 		
@@ -344,16 +349,17 @@ public class EntityService {
 			@QueryParam("artist") Set<String> artists, 
 			@QueryParam("genre") Set<String> genres,
 			@QueryParam("ordinal") @PositiveOrZero byte ordinal
-	) { //query aus moodle kurs nachricht für in
+	) { //TODO: query aus moodle kurs nachricht für IN (siehe E-Mail von Baumeister)
 		final EntityManager radioManager = RestJpaLifecycleProvider.entityManager("radio");
 		final TypedQuery<Long> query = radioManager.createQuery(CRITERIA_QUERY_JPQL_TRACK, Long.class);
+		if (resultLimit > 0) query.setMaxResults(resultLimit);
+		if (resultOffset > 0) query.setFirstResult(resultOffset);
 		query.setParameter("name", name);
 		query.setParameter("artists", artists);
 		query.setParameter("genres", genres);
 		query.setParameter("ordinal", ordinal);
-		query.setMaxResults(resultLimit);
-		query.setFirstResult(resultOffset);
-		//queryTracks setMax handling, sortieren
+		//queryTracks setMax handling --> done
+		// sortieren -> done
 		final List<Long> tracksReferences = query.getResultList();
 		final List<Track> tracks = new ArrayList<>();
 		for (final long reference : tracksReferences) {
@@ -361,7 +367,8 @@ public class EntityService {
 			if (track != null)
 				tracks.add(track);
 		}
-
+		
+		tracks.sort(Comparator.comparing(Track::getName).thenComparing(Track::getArtist));
 		return tracks;
 
 	}
@@ -430,8 +437,10 @@ public class EntityService {
 		final TypedQuery<String> query = radioManager.createQuery(CRITERIA_QUERY_JPQL_GENRE, String.class);
 		final List<String> genres = query.getResultList();
 
+		//sort genres
+		java.util.Collections.sort(genres);
 		return genres;
-	} //sortieren, default comparator
+	} //sortieren, default comparator --> done
 
 	@GET
 	@Path("/documents/{id}")
