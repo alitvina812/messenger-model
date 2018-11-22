@@ -5,6 +5,7 @@ import static javax.ws.rs.core.Response.Status.FORBIDDEN;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
@@ -68,9 +69,20 @@ public class EntityService {
 			+ "(:trackCount is null or a.trackCount >= :trackCount) and "
 			+ "(:trackCount is null or a.trackCount <= :trackCount)";
 
-	static private final String CRITERIA_QUERY_JPQL_TRACK = "select t.identity from Track as t where "
-			+ "(:name is null or t.name = :name) and " + "(:artist is null or t.artist = :artist) and "
-			+ "(:genre is null or t.genre = :genre) and " + "(:ordinal is null or t.ordinal >= :ordinal) and "
+
+//	static private final String CRITERIA_QUERY_JPQL_TRACK = "select t.identity from Track as t where "
+//			+ "(:name is null or t.name = :name) and " + "(:artist is null or t.artist = :artist) and "
+//			+ "(:genre is null or t.genre = :genre) and " + "(:ordinal is null or t.ordinal >= :ordinal) and "
+//			+ "(:ordinal is null or t.ordinal <= :ordinal)";
+	
+	static private final Set<String> EMPTY_WORD_SINGLETON = Collections.singleton("");
+	static private final String CRITERIA_QUERY_JPQL_TRACK = "select t.identity from Track as t where "		
+			+ "(:name is null or t.name = :name) and " 
+			//+ "(:artist is null or t.artist = :artist) and "
+			+ "(:ignoreArtists = true or t.artist in :artists)" // use a set for artist
+			//+ "(:genre is null or t.genre = :genre) and " 
+			+ "(:ignoreGenres = true or t.genre in :genres)" // use set for genres
+			+ "(:ordinal is null or t.ordinal >= :ordinal) and "
 			+ "(:ordinal is null or t.ordinal <= :ordinal)";
 
 	static private final String CRITERIA_QUERY_JPQL_GENRE = "select distinct t.genre from Track as t";
@@ -349,14 +361,18 @@ public class EntityService {
 			@QueryParam("artist") Set<String> artists, 
 			@QueryParam("genre") Set<String> genres,
 			@QueryParam("ordinal") @PositiveOrZero byte ordinal
-	) { //TODO: query aus moodle kurs nachricht für IN (siehe E-Mail von Baumeister)
+	) { //TODO: query aus moodle kurs nachricht für IN (siehe E-Mail von Baumeister) --> done
 		final EntityManager radioManager = RestJpaLifecycleProvider.entityManager("radio");
 		final TypedQuery<Long> query = radioManager.createQuery(CRITERIA_QUERY_JPQL_TRACK, Long.class);
 		if (resultLimit > 0) query.setMaxResults(resultLimit);
 		if (resultOffset > 0) query.setFirstResult(resultOffset);
 		query.setParameter("name", name);
-		query.setParameter("artists", artists);
-		query.setParameter("genres", genres);
+		//query.setParameter("artists", artists);
+		query.setParameter("ignoreArtists", artists.isEmpty());
+		query.setParameter("artists", artists.isEmpty() ? EMPTY_WORD_SINGLETON : artists);
+		//query.setParameter("genres", genres);
+		query.setParameter("ignoreGenres", genres.isEmpty());
+		query.setParameter("genres", genres.isEmpty() ? EMPTY_WORD_SINGLETON : genres);
 		query.setParameter("ordinal", ordinal);
 		//queryTracks setMax handling --> done
 		// sortieren -> done
