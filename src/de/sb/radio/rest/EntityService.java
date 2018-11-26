@@ -58,25 +58,25 @@ import de.sb.toolbox.net.RestJpaLifecycleProvider;
 public class EntityService {
 
 	static private final String CRITERIA_QUERY_JPQL_PERSON = "select p.identity from Person as p where "
+			+ "(:lowerCreationTimestamp is null or p.creationTimestap >= :lowerCreationTimestamp) and "
+			+ "(:upperCreationTimestamp is null or p.creationTimestap <= :upperCreationTimestamp) and "
 			+ "(:surname is null or p.surname = :surname) and "
 			+ "(:forename is null or p.forename = :forename) and "
 			+ "(:email is null or p.email = :email)";
 
 	static private final String CRITERIA_QUERY_JPQL_ALBUM = "select a.identity from Album as a where "
+			+ "(:lowerCreationTimestamp is null or a.creationTimestap >= :lowerCreationTimestamp) and "
+			+ "(:upperCreationTimestamp is null or a.creationTimestap <= :upperCreationTimestamp) and "
 			+ "(:title is null or a.title = :title) and "
 			+ "(:releaseYear is null or a.releaseYear >= :releaseYear) and "
 			+ "(:releaseYear is null or a.releaseYear <= :releaseYear) and "
 			+ "(:trackCount is null or a.trackCount >= :trackCount) and "
 			+ "(:trackCount is null or a.trackCount <= :trackCount)";
-
-
-//	static private final String CRITERIA_QUERY_JPQL_TRACK = "select t.identity from Track as t where "
-//			+ "(:name is null or t.name = :name) and " + "(:artist is null or t.artist = :artist) and "
-//			+ "(:genre is null or t.genre = :genre) and " + "(:ordinal is null or t.ordinal >= :ordinal) and "
-//			+ "(:ordinal is null or t.ordinal <= :ordinal)";
 	
 	static private final Set<String> EMPTY_WORD_SINGLETON = Collections.singleton("");
-	static private final String CRITERIA_QUERY_JPQL_TRACK = "select t.identity from Track as t where "		
+	static private final String CRITERIA_QUERY_JPQL_TRACK = "select t.identity from Track as t where "
+			+ "(:lowerCreationTimestamp is null or t.creationTimestap >= :lowerCreationTimestamp) and "
+			+ "(:upperCreationTimestamp is null or t.creationTimestap <= :upperCreationTimestamp) and "
 			+ "(:name is null or t.name = :name) and " 
 			+ "(:ignoreArtists = true or t.artist in :artists) and "
 			+ "(:ignoreGenres = true or t.genre in :genres) and "
@@ -167,13 +167,15 @@ public class EntityService {
 	@Path("/people")
 	@Produces(MediaType.APPLICATION_JSON)
 	public List<Person> queryPeople(
+			@QueryParam("lowerCreationTimestamp") @PositiveOrZero final long lowerCreationTimestamp,
+			@QueryParam("upperCreationTimestamp") @PositiveOrZero final long upperCreationTimestamp,
 			@QueryParam("resultOffset") @PositiveOrZero int resultOffset,
 			@QueryParam("resultLimit")  @PositiveOrZero int resultLimit, 
 			@QueryParam("email") @Email final String email,
 			@QueryParam("forename") final String forename, 
 			@QueryParam("surname") final String surname
 			
-			// TODO: creationtimestamp (siehe BaseEntity) als parameter und range (person, album und tracks)
+			// TODO: creationtimestamp (siehe BaseEntity) als parameter und range (person, album und tracks) --> done
 	) {
 		final EntityManager radioManager = RestJpaLifecycleProvider.entityManager("radio");
 
@@ -183,6 +185,8 @@ public class EntityService {
 		query.setParameter("surname", surname);
 		query.setParameter("forename", forename);
 		query.setParameter("email", email);
+		query.setParameter("lowerCreationTimestamp", lowerCreationTimestamp);
+		query.setParameter("upperCreationTimestamp", upperCreationTimestamp);
 		
 		final List<Long> peopleReferences = query.getResultList();
 		final List<Person> people = new ArrayList<>();
@@ -277,12 +281,14 @@ public class EntityService {
 	@Path("/albums")
 	@Produces(MediaType.APPLICATION_JSON)
 	public Collection<Album> queryAlbums(
+			@QueryParam("lowerCreationTimestamp") @PositiveOrZero final long lowerCreationTimestamp,
+			@QueryParam("upperCreationTimestamp") @PositiveOrZero final long upperCreationTimestamp,
 			@QueryParam("resultOffset") @PositiveOrZero int resultOffset, 
 			@QueryParam("resultLimit") @PositiveOrZero int resultLimit,
 			@QueryParam("title") String title, 
 			@QueryParam("releaseYear") @PositiveOrZero short releaseYear,
 			@QueryParam("trackCount") @PositiveOrZero byte trackCount
-	) { //TODO: creation timestamp range
+	) { //TODO: creation timestamp range --> done
 		final EntityManager radioManager = RestJpaLifecycleProvider.entityManager("radio");
 		final TypedQuery<Long> query = radioManager.createQuery(CRITERIA_QUERY_JPQL_ALBUM, Long.class);
 		if (resultOffset > 0) query.setFirstResult(resultOffset);
@@ -291,6 +297,8 @@ public class EntityService {
 			.setParameter("title", title)
 			.setParameter("releaseYear", releaseYear)
 			.setParameter("trackCount", trackCount)
+			.setParameter("lowerCreationTimestamp", lowerCreationTimestamp)
+			.setParameter("upperCreationTimestamp", upperCreationTimestamp)
 			.getResultList();
 		
 		final List<Album> albums = new ArrayList<>();
@@ -301,7 +309,7 @@ public class EntityService {
 
 		albums.sort(Comparator.comparing(Album::getTitle).thenComparing(Album::getIdentity));
 		return albums;
-	} //query albums sortieren --> done
+	}
 
 	@POST
 	@Path("/albums")
@@ -317,7 +325,7 @@ public class EntityService {
 		if (requester == null || (requester.getGroup() != Person.Group.ADMIN)) {
 			throw new ClientErrorException(Status.FORBIDDEN);
 		}
-		//modify album, if/else für album korrigieren --> done
+		
 		final boolean insert = template.getIdentity() == 0;
 		final Document cover = radioManager.find(Document.class, coverReference==null ? 1L : coverReference);
 		final Album album;
@@ -356,6 +364,8 @@ public class EntityService {
 	@Path("/tracks")
 	@Produces(MediaType.APPLICATION_JSON)
 	public List<Track> queryTracks(
+			@QueryParam("lowerCreationTimestamp") @PositiveOrZero final long lowerCreationTimestamp,
+			@QueryParam("upperCreationTimestamp") @PositiveOrZero final long upperCreationTimestamp,
 			@QueryParam("resultOffset") @PositiveOrZero int resultOffset, 
 			@QueryParam("resultLimit") @PositiveOrZero int resultLimit,
 			@QueryParam("name") String name, 
@@ -363,12 +373,14 @@ public class EntityService {
 			@QueryParam("genre") Set<String> genres,
 			@QueryParam("lowerOrdinal") @PositiveOrZero byte lowerOrdinal,
 			@QueryParam("upperOrdinal") @PositiveOrZero byte upperOrdinal
-	) {
+	) { //TODO: timestamp --> done
 		final EntityManager radioManager = RestJpaLifecycleProvider.entityManager("radio");
 		final TypedQuery<Long> query = radioManager.createQuery(CRITERIA_QUERY_JPQL_TRACK, Long.class);
 		if (resultLimit > 0) query.setMaxResults(resultLimit);
 		if (resultOffset > 0) query.setFirstResult(resultOffset);
 		query.setParameter("name", name);
+		query.setParameter("lowerCreationTimestamp", lowerCreationTimestamp);
+		query.setParameter("upperCreationTimestamp", upperCreationTimestamp);
 		query.setParameter("lowerOrdinal", lowerOrdinal);
 		query.setParameter("upperOrdinal", upperOrdinal);
 		query.setParameter("ignoreArtists", artists.isEmpty());
@@ -532,7 +544,7 @@ public class EntityService {
 		}
 		return document.getIdentity();
 	}
-	// JUNIT: Filter methode aufruft und post document methode mit einem zufallsinhalt
+	// JUNIT: Filter methode aufruf und post document methode mit einem zufallsinhalt
 	// JAX-RS client API
 	// GET something filter query, POST Document
 }
