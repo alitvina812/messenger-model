@@ -58,15 +58,15 @@ import de.sb.toolbox.net.RestJpaLifecycleProvider;
 public class EntityService {
 
 	static private final String CRITERIA_QUERY_JPQL_PERSON = "select p.identity from Person as p where "
-			+ "(:lowerCreationTimestamp is null or p.creationTimestap >= :lowerCreationTimestamp) and "
-			+ "(:upperCreationTimestamp is null or p.creationTimestap <= :upperCreationTimestamp) and "
+			+ "(:lowerCreationTimestamp is null or p.creationTimestamp >= :lowerCreationTimestamp) and "
+			+ "(:upperCreationTimestamp is null or p.creationTimestamp <= :upperCreationTimestamp) and "
 			+ "(:surname is null or p.surname = :surname) and "
 			+ "(:forename is null or p.forename = :forename) and "
 			+ "(:email is null or p.email = :email)";
 
 	static private final String CRITERIA_QUERY_JPQL_ALBUM = "select a.identity from Album as a where "
-			+ "(:lowerCreationTimestamp is null or a.creationTimestap >= :lowerCreationTimestamp) and "
-			+ "(:upperCreationTimestamp is null or a.creationTimestap <= :upperCreationTimestamp) and "
+			+ "(:lowerCreationTimestamp is null or a.creationTimestamp >= :lowerCreationTimestamp) and "
+			+ "(:upperCreationTimestamp is null or a.creationTimestamp <= :upperCreationTimestamp) and "
 			+ "(:title is null or a.title = :title) and "
 			+ "(:releaseYear is null or a.releaseYear >= :releaseYear) and "
 			+ "(:releaseYear is null or a.releaseYear <= :releaseYear) and "
@@ -75,8 +75,8 @@ public class EntityService {
 	
 	static private final Set<String> EMPTY_WORD_SINGLETON = Collections.singleton("");
 	static private final String CRITERIA_QUERY_JPQL_TRACK = "select t.identity from Track as t where "
-			+ "(:lowerCreationTimestamp is null or t.creationTimestap >= :lowerCreationTimestamp) and "
-			+ "(:upperCreationTimestamp is null or t.creationTimestap <= :upperCreationTimestamp) and "
+			+ "(:lowerCreationTimestamp is null or t.creationTimestamp >= :lowerCreationTimestamp) and "
+			+ "(:upperCreationTimestamp is null or t.creationTimestamp <= :upperCreationTimestamp) and "
 			+ "(:name is null or t.name = :name) and " 
 			+ "(:ignoreArtists = true or t.artist in :artists) and "
 			+ "(:ignoreGenres = true or t.genre in :genres) and "
