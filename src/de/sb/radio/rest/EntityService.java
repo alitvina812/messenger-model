@@ -185,8 +185,8 @@ public class EntityService {
 		query.setParameter("surname", surname);
 		query.setParameter("forename", forename);
 		query.setParameter("email", email);
-		query.setParameter("lowerCreationTimestamp", lowerCreationTimestamp);
-		query.setParameter("upperCreationTimestamp", upperCreationTimestamp);
+		query.setParameter("lowerCreationTimestamp", lowerCreationTimestamp == 0 ? null : lowerCreationTimestamp);
+		query.setParameter("upperCreationTimestamp", upperCreationTimestamp == 0 ? null : upperCreationTimestamp);
 		
 		final List<Long> peopleReferences = query.getResultList();
 		final List<Person> people = new ArrayList<>();
