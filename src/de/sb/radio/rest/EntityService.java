@@ -166,7 +166,7 @@ public class EntityService {
 	@GET
 	@Path("/people")
 	@Produces(MediaType.APPLICATION_JSON)
-	public List<Person> queryPeople(
+	public Collection<Person> queryPeople(
 			@QueryParam("lowerCreationTimestamp") @PositiveOrZero final long lowerCreationTimestamp,
 			@QueryParam("upperCreationTimestamp") @PositiveOrZero final long upperCreationTimestamp,
 			@QueryParam("resultOffset") @PositiveOrZero int resultOffset,
@@ -175,7 +175,6 @@ public class EntityService {
 			@QueryParam("forename") final String forename, 
 			@QueryParam("surname") final String surname
 			
-			// TODO: creationtimestamp (siehe BaseEntity) als parameter und range (person, album und tracks) --> done
 	) {
 		final EntityManager radioManager = RestJpaLifecycleProvider.entityManager("radio");
 
@@ -363,7 +362,7 @@ public class EntityService {
 	@GET
 	@Path("/tracks")
 	@Produces(MediaType.APPLICATION_JSON)
-	public List<Track> queryTracks(
+	public Collection<Track> queryTracks(
 			@QueryParam("lowerCreationTimestamp") @PositiveOrZero final long lowerCreationTimestamp,
 			@QueryParam("upperCreationTimestamp") @PositiveOrZero final long upperCreationTimestamp,
 			@QueryParam("resultOffset") @PositiveOrZero int resultOffset, 
@@ -373,7 +372,7 @@ public class EntityService {
 			@QueryParam("genre") Set<String> genres,
 			@QueryParam("lowerOrdinal") @PositiveOrZero byte lowerOrdinal,
 			@QueryParam("upperOrdinal") @PositiveOrZero byte upperOrdinal
-	) { //TODO: timestamp --> done
+	) {
 		final EntityManager radioManager = RestJpaLifecycleProvider.entityManager("radio");
 		final TypedQuery<Long> query = radioManager.createQuery(CRITERIA_QUERY_JPQL_TRACK, Long.class);
 		if (resultLimit > 0) query.setMaxResults(resultLimit);
@@ -460,7 +459,7 @@ public class EntityService {
 	@GET
 	@Path("tracks/artists")
 	@Produces(MediaType.APPLICATION_JSON)
-	public List<String> queryArtists(
+	public Collection<String> queryArtists(
 			@QueryParam("resultOffset") @PositiveOrZero int resultOffset, 
 			@QueryParam("resultLimit") @PositiveOrZero int resultLimit
 	) {
@@ -477,7 +476,7 @@ public class EntityService {
 	@GET
 	@Path("tracks/genres")
 	@Produces(MediaType.APPLICATION_JSON)
-	public List<String> queryGenres(
+	public Collection<String> queryGenres(
 			@QueryParam("resultOffset") @PositiveOrZero int resultOffset, 
 			@QueryParam("resultLimit") @PositiveOrZero int resultLimit
 	) {
