@@ -239,6 +239,8 @@ public class EntityService {
 		person.setForename(template.getForename());
 		person.setGroup(template.getGroup());
 		person.setSurname(template.getSurname());
+		//person.setLastTransmissionAddress(template.getLastTransmissionAddress());
+		//person.setLastTransmissionTimestamp(template.getLastTransmissionTimestamp());
 		if (password != null && !password.isEmpty()) {
 			person.setPasswordHash(HashTools.sha256HashCode(password));
 		}

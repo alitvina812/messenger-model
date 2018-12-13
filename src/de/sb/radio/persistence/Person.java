@@ -37,7 +37,7 @@ public class Person extends BaseEntity{
 	@Column(nullable = false, updatable = true, unique = true)
 	@NotNull
 	@Size(min = 1, max = 128)
-	@Email
+	@Email 
 	private String email;
 	
 	@Column(nullable = false, updatable = true)
@@ -59,6 +59,14 @@ public class Person extends BaseEntity{
 	@NotNull
 	@Size(min = 1, max = 31)
 	private String surname;
+	
+//	@Column(nullable = false, updatable = true)
+//	private String lastTransmissionAddress;
+//	
+//	@Column(nullable = false, updatable = true)
+//	private long lastTransmissionTimestamp;
+	
+	
 	
 	@OneToMany(mappedBy="owner", cascade = {CascadeType.REMOVE, CascadeType.REFRESH})
 	private Set<Track> tracks;
@@ -147,5 +155,23 @@ public class Person extends BaseEntity{
 	protected long[] getTrackReferences() {
 		return this.tracks.stream().mapToLong(track -> track.getIdentity()).toArray();
 	}
+	
+//	@JsonbProperty()
+//	public long getLastTransmissionTimestamp() {
+//		return this.lastTransmissionTimestamp;
+//	}
+//	
+//	public void setLastTransmissionTimestamp(long timestamp) {
+//		this.lastTransmissionTimestamp = timestamp;
+//	}
+//	
+//	@JsonbProperty()
+//	public String getLastTransmissionAddress() {
+//		return this.lastTransmissionAddress;
+//	}
+//	
+//	public void setLastTransmissionAddress(String address) {
+//		this.lastTransmissionAddress = address;
+//	}
 	
 }
