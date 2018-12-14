@@ -1,5 +1,9 @@
 package de.sb.radio.persistence;
 
+import javax.json.bind.annotation.JsonbProperty;
+import javax.json.bind.annotation.JsonbTransient;
+import javax.json.bind.annotation.JsonbVisibility;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
@@ -8,11 +12,8 @@ import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.PositiveOrZero;
 import javax.validation.constraints.Size;
+
 import de.sb.toolbox.bind.JsonProtectedPropertyStrategy;
-import javax.json.bind.annotation.JsonbProperty;
-import javax.json.bind.annotation.JsonbTransient;
-import javax.json.bind.annotation.JsonbVisibility;
-import javax.persistence.Column;
 
 @Entity
 @Table(schema = "radio", name = "Track")

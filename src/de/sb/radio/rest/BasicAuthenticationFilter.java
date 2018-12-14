@@ -3,8 +3,10 @@ package de.sb.radio.rest;
 import static javax.ws.rs.core.HttpHeaders.AUTHORIZATION;
 import static javax.ws.rs.core.HttpHeaders.WWW_AUTHENTICATE;
 import static javax.ws.rs.core.Response.Status.UNAUTHORIZED;
+
 import java.util.Arrays;
 import java.util.List;
+
 import javax.annotation.Priority;
 import javax.persistence.EntityManager;
 import javax.ws.rs.BadRequestException;
@@ -14,6 +16,7 @@ import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.Provider;
+
 import de.sb.radio.persistence.HashTools;
 import de.sb.radio.persistence.Person;
 import de.sb.toolbox.Copyright;

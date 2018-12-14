@@ -2,8 +2,8 @@ package de.sb.radio.persistence;
 
 import static javax.persistence.GenerationType.IDENTITY;
 import static javax.persistence.InheritanceType.JOINED;
+
 import javax.json.bind.annotation.JsonbProperty;
-import javax.json.bind.annotation.JsonbTransient;
 import javax.json.bind.annotation.JsonbVisibility;
 import javax.persistence.Column;
 import javax.persistence.DiscriminatorColumn;
@@ -15,6 +15,7 @@ import javax.persistence.Inheritance;
 import javax.persistence.Table;
 import javax.persistence.Version;
 import javax.validation.constraints.Positive;
+
 import de.sb.toolbox.Copyright;
 import de.sb.toolbox.bind.JsonProtectedPropertyStrategy;
 

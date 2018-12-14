@@ -1,16 +1,5 @@
 package de.sb.radio.persistence;
 
-import javax.persistence.Entity;
-import javax.persistence.Inheritance;
-import javax.persistence.PrimaryKeyJoinColumn;
-import javax.persistence.Table;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
-
-import de.sb.toolbox.bind.JsonProtectedPropertyStrategy;
-
-import static javax.persistence.InheritanceType.JOINED;
-
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
@@ -23,6 +12,13 @@ import javax.json.bind.annotation.JsonbProperty;
 import javax.json.bind.annotation.JsonbTransient;
 import javax.json.bind.annotation.JsonbVisibility;
 import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.PrimaryKeyJoinColumn;
+import javax.persistence.Table;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
+
+import de.sb.toolbox.bind.JsonProtectedPropertyStrategy;
 
 @Entity
 @Table(schema = "radio", name = "Document")
