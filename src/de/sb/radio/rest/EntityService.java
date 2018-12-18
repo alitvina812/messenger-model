@@ -62,7 +62,9 @@ public class EntityService {
 			+ "(:lowerCreationTimestamp is null or p.creationTimestamp >= :lowerCreationTimestamp) and "
 			+ "(:upperCreationTimestamp is null or p.creationTimestamp <= :upperCreationTimestamp) and "
 			+ "(:surname is null or p.surname = :surname) and "
-			+ "(:forename is null or p.forename = :forename) and "
+			+ "(:forename is null or p.forename = :forename) and"
+			+ "(:lastTransmissionTimestamp is null or p.lastTransmissionTimestamp = :lastTransmissionTimestamp) and"
+			+ "(:lastTransmissionAddress is null or p.lastTransmissionAddress = :lastTransmissionAddress) and "
 			+ "(:email is null or p.email = :email)";
 
 	static private final String CRITERIA_QUERY_JPQL_ALBUM = "select a.identity from Album as a where "
@@ -73,7 +75,6 @@ public class EntityService {
 			+ "(:releaseYear is null or a.releaseYear <= :releaseYear) and "
 			+ "(:trackCount is null or a.trackCount >= :trackCount) and "
 			+ "(:trackCount is null or a.trackCount <= :trackCount)";
-	// ??
 	
 	static private final String CRITERIA_QUERY_JPQL_TRACK = "select t.identity from Track as t where "
 			+ "(:lowerCreationTimestamp is null or t.creationTimestamp >= :lowerCreationTimestamp) and "
@@ -169,12 +170,14 @@ public class EntityService {
 	@Produces(MediaType.APPLICATION_JSON)
 	public Collection<Person> queryPeople(
 			@QueryParam("resultOffset") @PositiveOrZero int resultOffset,
-			@QueryParam("resultLimit")  @PositiveOrZero int resultLimit, 
-			@QueryParam("lowerCreationTimestamp") @PositiveOrZero final Long lowerCreationTimestamp,
-			@QueryParam("upperCreationTimestamp") @PositiveOrZero final Long upperCreationTimestamp,
+			@QueryParam("resultLimit")  @PositiveOrZero int resultLimit,
+			@QueryParam("lowerCreationTimestamp") @PositiveOrZero final long lowerCreationTimestamp,
+			@QueryParam("upperCreationTimestamp") @PositiveOrZero final long upperCreationTimestamp,
 			@QueryParam("email") @Email final String email,
 			@QueryParam("forename") final String forename, 
-			@QueryParam("surname") final String surname
+			@QueryParam("surname") final String surname,
+			@QueryParam("lastTransmissionTimestamp") final Byte lastTransmissionTimestamp, 
+			@QueryParam("lastTransmissionAddress") final String lastTransmissionAddress
 			
 	) {
 		final EntityManager radioManager = RestJpaLifecycleProvider.entityManager("radio");
@@ -182,12 +185,15 @@ public class EntityService {
 		final TypedQuery<Long> query = radioManager.createQuery(CRITERIA_QUERY_JPQL_PERSON, Long.class);
 		if (resultLimit > 0) query.setMaxResults(resultLimit);
 		if (resultOffset > 0) query.setFirstResult(resultOffset);
-		query.setParameter("surname", surname);
-		query.setParameter("forename", forename);
-		query.setParameter("email", email);
-		query.setParameter("lowerCreationTimestamp", lowerCreationTimestamp);
-		query.setParameter("upperCreationTimestamp", upperCreationTimestamp);
-		
+		query
+			.setParameter("surname", surname)
+			.setParameter("forename", forename)
+			.setParameter("lastTransmissionTimestamp", lastTransmissionTimestamp)
+			.setParameter("lastTransmissionAddress", lastTransmissionAddress)
+			.setParameter("email", email)
+			.setParameter("lowerCreationTimestamp", lowerCreationTimestamp)
+			.setParameter("upperCreationTimestamp", upperCreationTimestamp);
+
 		final List<Long> peopleReferences = query.getResultList();
 		final List<Person> people = new ArrayList<>();
 		for (final long reference : peopleReferences) {
@@ -240,8 +246,6 @@ public class EntityService {
 		person.setForename(template.getForename());
 		person.setGroup(template.getGroup());
 		person.setSurname(template.getSurname());
-		//person.setLastTransmissionAddress(template.getLastTransmissionAddress());
-		//person.setLastTransmissionTimestamp(template.getLastTransmissionTimestamp());
 		if (password != null && !password.isEmpty()) {
 			person.setPasswordHash(HashTools.sha256HashCode(password));
 		}
@@ -285,8 +289,8 @@ public class EntityService {
 	public Collection<Album> queryAlbums(
 			@QueryParam("resultOffset") @PositiveOrZero int resultOffset, 
 			@QueryParam("resultLimit") @PositiveOrZero int resultLimit,
-			@QueryParam("lowerCreationTimestamp") @PositiveOrZero final Long lowerCreationTimestamp,
-			@QueryParam("upperCreationTimestamp") @PositiveOrZero final Long upperCreationTimestamp,
+			@QueryParam("lowerCreationTimestamp") @PositiveOrZero final long lowerCreationTimestamp,
+			@QueryParam("upperCreationTimestamp") @PositiveOrZero final long upperCreationTimestamp,
 			@QueryParam("title") String title, 
 			@QueryParam("releaseYear") @PositiveOrZero Short releaseYear,
 			@QueryParam("trackCount") @PositiveOrZero Byte trackCount
@@ -367,8 +371,8 @@ public class EntityService {
 	public Collection<Track> queryTracks(
 			@QueryParam("resultOffset") @PositiveOrZero int resultOffset, 
 			@QueryParam("resultLimit") @PositiveOrZero int resultLimit,
-			@QueryParam("lowerCreationTimestamp") @PositiveOrZero final Long lowerCreationTimestamp,
-			@QueryParam("upperCreationTimestamp") @PositiveOrZero final Long upperCreationTimestamp,
+			@QueryParam("lowerCreationTimestamp") @PositiveOrZero final long lowerCreationTimestamp,
+			@QueryParam("upperCreationTimestamp") @PositiveOrZero final long upperCreationTimestamp,
 			@QueryParam("name") String name, 
 			@QueryParam("artist") Set<String> artists, 
 			@QueryParam("genre") Set<String> genres,
