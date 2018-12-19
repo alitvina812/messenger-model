@@ -56,6 +56,12 @@ public class Person extends BaseEntity{
 	@Size(min = 1, max = 31)
 	private String surname;
 	
+	@Column(nullable = true, updatable = true)
+	private Byte lastTransmissionTimestamp;
+	
+	@Column(nullable = true, updatable = true)
+	private String lastTransmissionAddress;
+	
 	@OneToMany(mappedBy="owner", cascade = {CascadeType.REMOVE, CascadeType.REFRESH})
 	private Set<Track> tracks;
 	
@@ -113,6 +119,16 @@ public class Person extends BaseEntity{
 	
 	public void setSurname(String surname) {
 		this.surname = surname;
+	}
+	
+	@JsonbProperty
+	public Byte getLastTransmissionTimestamp() {
+		return this.lastTransmissionTimestamp;
+	}
+	
+	@JsonbProperty
+	public String getLastTransmissionAddress() {
+		return this.lastTransmissionAddress;
 	}
 
 	@JsonbProperty
