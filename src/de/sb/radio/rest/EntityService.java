@@ -171,8 +171,8 @@ public class EntityService {
 	public Collection<Person> queryPeople(
 			@QueryParam("resultOffset") @PositiveOrZero int resultOffset,
 			@QueryParam("resultLimit")  @PositiveOrZero int resultLimit,
-			@QueryParam("lowerCreationTimestamp") @PositiveOrZero final long lowerCreationTimestamp,
-			@QueryParam("upperCreationTimestamp") @PositiveOrZero final long upperCreationTimestamp,
+			@QueryParam("lowerCreationTimestamp") @PositiveOrZero final Long lowerCreationTimestamp,
+			@QueryParam("upperCreationTimestamp") @PositiveOrZero final Long upperCreationTimestamp,
 			@QueryParam("email") @Email final String email,
 			@QueryParam("forename") final String forename, 
 			@QueryParam("surname") final String surname,
@@ -289,8 +289,8 @@ public class EntityService {
 	public Collection<Album> queryAlbums(
 			@QueryParam("resultOffset") @PositiveOrZero int resultOffset, 
 			@QueryParam("resultLimit") @PositiveOrZero int resultLimit,
-			@QueryParam("lowerCreationTimestamp") @PositiveOrZero final long lowerCreationTimestamp,
-			@QueryParam("upperCreationTimestamp") @PositiveOrZero final long upperCreationTimestamp,
+			@QueryParam("lowerCreationTimestamp") @PositiveOrZero final Long lowerCreationTimestamp,
+			@QueryParam("upperCreationTimestamp") @PositiveOrZero final Long upperCreationTimestamp,
 			@QueryParam("title") String title, 
 			@QueryParam("releaseYear") @PositiveOrZero Short releaseYear,
 			@QueryParam("trackCount") @PositiveOrZero Byte trackCount
@@ -371,8 +371,8 @@ public class EntityService {
 	public Collection<Track> queryTracks(
 			@QueryParam("resultOffset") @PositiveOrZero int resultOffset, 
 			@QueryParam("resultLimit") @PositiveOrZero int resultLimit,
-			@QueryParam("lowerCreationTimestamp") @PositiveOrZero final long lowerCreationTimestamp,
-			@QueryParam("upperCreationTimestamp") @PositiveOrZero final long upperCreationTimestamp,
+			@QueryParam("lowerCreationTimestamp") @PositiveOrZero final Long lowerCreationTimestamp,
+			@QueryParam("upperCreationTimestamp") @PositiveOrZero final Long upperCreationTimestamp,
 			@QueryParam("name") String name, 
 			@QueryParam("artist") Set<String> artists, 
 			@QueryParam("genre") Set<String> genres,
