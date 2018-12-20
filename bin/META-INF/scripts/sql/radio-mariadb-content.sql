@@ -12,14 +12,14 @@ INSERT INTO Document VALUES (@id, x'8600f8cf1a2733e9d12ee95f38afdca9ded9eb77ba41
 
 INSERT INTO BaseEntity VALUES (0, "Person", 1, UNIX_TIMESTAMP()*1000);
 SET @id = LAST_INSERT_ID();
-INSERT INTO Person VALUES (@id, 1, "guest@htw-radio.de", UNHEX(SHA2("guest",256)), "USER", "Radio", "Guest");
+INSERT INTO Person VALUES (@id, 1, "guest@htw-radio.de", UNHEX(SHA2("guest",256)), "USER", "Radio", "Guest", null, null);
 
 INSERT INTO BaseEntity VALUES (0, "Person", 1, UNIX_TIMESTAMP()*1000);
 SET @id = LAST_INSERT_ID();
-INSERT INTO Person VALUES (@id, 1, "ines.bergmann@web.de", UNHEX(SHA2("ines",256)), "ADMIN", "Bergmann", "Ines");
+INSERT INTO Person VALUES (@id, 1, "ines.bergmann@web.de", UNHEX(SHA2("ines",256)), "ADMIN", "Bergmann", "Ines", null, null);
 
 INSERT INTO BaseEntity VALUES (0, "Person", 1, UNIX_TIMESTAMP()*1000);
 SET @id = LAST_INSERT_ID();
-INSERT INTO Person VALUES (@id, 1, "sascha.baumeister@gmail.com", UNHEX(SHA2("sascha",256)), "ADMIN", "Baumeister", "Sascha");
+INSERT INTO Person VALUES (@id, 1, "sascha.baumeister@gmail.com", UNHEX(SHA2("sascha",256)), "ADMIN", "Baumeister", "Sascha", null, null);
 
 SELECT identity, discriminator, email, HEX(contentHash) from JoinedEntity;

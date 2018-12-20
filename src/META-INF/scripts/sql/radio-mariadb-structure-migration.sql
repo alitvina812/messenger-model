@@ -6,3 +6,7 @@ SET CHARACTER SET utf8;
 USE radio;
 -- ALTER TABLE
 -- if not exist
+
+ALTER TABLE Person ADD COLUMN IF NOT EXISTS lastTransmissionTimestamp BIGINT NULL;
+
+ALTER TABLE Person ADD COLUMN IF NOT EXISTS lastTransmissionAddress VARCHAR(63) NULL;
