@@ -3,6 +3,7 @@ package de.sb.radio.rest;
 import static de.sb.radio.rest.BasicAuthenticationFilter.REQUESTER_IDENTITY;
 import static javax.ws.rs.core.Response.Status.FORBIDDEN;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -14,6 +15,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceException;
 import javax.persistence.RollbackException;
 import javax.persistence.TypedQuery;
+import javax.sound.sampled.UnsupportedAudioFileException;
 import javax.validation.Valid;
 //import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Email;
@@ -36,10 +38,12 @@ import javax.ws.rs.core.Response.Status;
 
 import de.sb.radio.persistence.Album;
 import de.sb.radio.persistence.BaseEntity;
+import de.sb.radio.persistence.Compressor;
 import de.sb.radio.persistence.Document;
 import de.sb.radio.persistence.HashTools;
 import de.sb.radio.persistence.Person;
 import de.sb.radio.persistence.Person.Group;
+import de.sb.radio.persistence.Processor;
 import de.sb.radio.persistence.Track;
 import de.sb.toolbox.Copyright;
 import de.sb.toolbox.net.RestJpaLifecycleProvider;
@@ -500,12 +504,26 @@ public class EntityService {
 	@Path("/documents/{id}")
 	@Produces(MediaType.WILDCARD)
 	public Response queryDocument(
-			@PathParam("id") @Positive final long documentIdentity
-	) {
+			@PathParam("id") @Positive final long documentIdentity,
+			@QueryParam("imageWidth") final Integer imageWidth,
+			@QueryParam("imageHeight") final Integer imageHeight,
+			@QueryParam("audioCompressionRatio") final Double audioCompressionRatio
+	) throws IOException, UnsupportedAudioFileException {
 		final EntityManager radioManager = RestJpaLifecycleProvider.entityManager("radio");
 		final Document document = radioManager.find(Document.class, documentIdentity);
 		if (document == null) throw new ClientErrorException(Status.NOT_FOUND);
-		return Response.ok(document.getContent(), document.getContentType()).build(); 
+		byte[] content = document.getContent();
+		String contentType = document.getContentType();
+
+		if (contentType.startsWith("image/") & (imageWidth != null & imageHeight != null)) {
+			content = Document.scaledImageContent(contentType.substring(6), content, imageWidth, imageHeight);
+		} else if (contentType.startsWith("audio/") & audioCompressionRatio != null) {
+			final Processor compressor = new Compressor(audioCompressionRatio);
+			content = Document.processedAudioContent(content, compressor);
+			contentType = "audio/wav";
+		}
+
+		return Response.ok(content, contentType).build(); 
 	}
 
 	@POST
