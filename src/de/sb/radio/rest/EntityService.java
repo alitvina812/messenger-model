@@ -45,6 +45,7 @@ import de.sb.radio.persistence.Person;
 import de.sb.radio.persistence.Person.Group;
 import de.sb.radio.persistence.Processor;
 import de.sb.radio.persistence.Track;
+import de.sb.radio.persistence.Transmission;
 import de.sb.toolbox.Copyright;
 import de.sb.toolbox.net.RestJpaLifecycleProvider;
 
@@ -253,7 +254,10 @@ public class EntityService {
 		if (password != null && !password.isEmpty()) {
 			person.setPasswordHash(HashTools.sha256HashCode(password));
 		}
-		
+		if (template.getLastTransmission() != null) {
+			person.setLastTransmission(template.getLastTransmission());
+		}
+
 		if(insert) {
 			radioManager.persist(person);
 		} else {
@@ -517,7 +521,7 @@ public class EntityService {
 
 		if (contentType.startsWith("image/") & (imageWidth != null & imageHeight != null)) {
 			content = Document.scaledImageContent(contentType.substring(6), content, imageWidth, imageHeight);
-		} else if (contentType.startsWith("audio/") & audioCompressionRatio != null) {
+		} else if (contentType.startsWith("audio/") && audioCompressionRatio != null &&  audioCompressionRatio != 1.0) {
 			final Processor compressor = new Compressor(audioCompressionRatio);
 			content = Document.processedAudioContent(content, compressor);
 			contentType = "audio/wav";

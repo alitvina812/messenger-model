@@ -6,8 +6,11 @@ import java.util.Set;
 import javax.json.bind.annotation.JsonbProperty;
 import javax.json.bind.annotation.JsonbTransient;
 import javax.json.bind.annotation.JsonbVisibility;
+import javax.persistence.AttributeOverride;
+import javax.persistence.AttributeOverrides;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
+import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
@@ -16,6 +19,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.PrimaryKeyJoinColumn;
 import javax.persistence.Table;
+import javax.validation.Valid;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
@@ -56,11 +60,15 @@ public class Person extends BaseEntity{
 	@Size(min = 1, max = 31)
 	private String surname;
 	
-	@Column(nullable = true, updatable = true)
-	private Byte lastTransmissionTimestamp;
+	@Valid
+	@Embedded
+	@AttributeOverrides({
+		@AttributeOverride(name="address", column = @Column(name="lastTransmissionAddress")),
+		@AttributeOverride(name="timestamp", column = @Column(name="lastTransmissionTimestamp")),		
+		@AttributeOverride(name="offer", column = @Column(name="lastTransmissionOffer"))
+	})
+	private Transmission lastTransmission;
 	
-	@Column(nullable = true, updatable = true)
-	private String lastTransmissionAddress;
 	
 	@OneToMany(mappedBy="owner", cascade = {CascadeType.REMOVE, CascadeType.REFRESH})
 	private Set<Track> tracks;
@@ -74,6 +82,7 @@ public class Person extends BaseEntity{
 		this.tracks = Collections.emptySet();
 		this.avatar = avatar;
 		this.group = Group.USER;
+		this.lastTransmission = new Transmission();
 	}
 	
 	protected Person() {
@@ -122,14 +131,14 @@ public class Person extends BaseEntity{
 	}
 	
 	@JsonbProperty
-	public Byte getLastTransmissionTimestamp() {
-		return this.lastTransmissionTimestamp;
+	public Transmission getLastTransmission() {
+		return this.lastTransmission;
 	}
 	
-	@JsonbProperty
-	public String getLastTransmissionAddress() {
-		return this.lastTransmissionAddress;
+	public void setLastTransmission(Transmission lastTransmission) {
+		this.lastTransmission = lastTransmission;
 	}
+	
 
 	@JsonbProperty
 	public Group getGroup () {

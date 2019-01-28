@@ -18,6 +18,10 @@ public class Transmission {
 	@Column(nullable = true, updatable = true)
 	private Long timestamp;
 	
+	@Column(nullable = true, updatable = true, length = 4096)
+	private String offer;
+	
+	
 	@JsonbProperty()
 	public Long getTimestamp() {
 		return this.timestamp;
@@ -35,5 +39,14 @@ public class Transmission {
 	
 	public void setAddress(String address) {
 		this.address = address;
+	}
+	
+	@JsonbProperty()
+	public String getOffer() {
+		return this.offer;
+	}
+	
+	public void setOffer(String offer) {
+		this.offer = offer;
 	}
 }

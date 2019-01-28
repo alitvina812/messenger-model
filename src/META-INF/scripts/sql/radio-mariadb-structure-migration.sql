@@ -8,5 +8,5 @@ USE radio;
 -- if not exist
 
 ALTER TABLE Person ADD COLUMN IF NOT EXISTS lastTransmissionTimestamp BIGINT NULL;
-
 ALTER TABLE Person ADD COLUMN IF NOT EXISTS lastTransmissionAddress VARCHAR(63) NULL;
+ALTER TABLE Person ADD COLUMN IF NOT EXISTS lastTransmissionOffer VARCHAR(4096) NULL;
