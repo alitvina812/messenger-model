@@ -68,8 +68,8 @@ public class EntityService {
 			+ "(:upperCreationTimestamp is null or p.creationTimestamp <= :upperCreationTimestamp) and "
 			+ "(:surname is null or p.surname = :surname) and "
 			+ "(:forename is null or p.forename = :forename) and"
-			+ "(:lastTransmissionTimestamp is null or p.lastTransmissionTimestamp = :lastTransmissionTimestamp) and"
-			+ "(:lastTransmissionAddress is null or p.lastTransmissionAddress = :lastTransmissionAddress) and "
+			//+ "(:lastTransmissionTimestamp is null or p.lastTransmissionTimestamp >= :lastTransmissionTimestamp) and"
+			//+ "(:lastTransmissionAddress is null or p.lastTransmissionAddress = :lastTransmissionAddress) and "
 			+ "(:email is null or p.email = :email)";
 
 	static private final String CRITERIA_QUERY_JPQL_ALBUM = "select a.identity from Album as a where "
@@ -180,9 +180,9 @@ public class EntityService {
 			@QueryParam("upperCreationTimestamp") @PositiveOrZero final Long upperCreationTimestamp,
 			@QueryParam("email") @Email final String email,
 			@QueryParam("forename") final String forename, 
-			@QueryParam("surname") final String surname,
-			@QueryParam("lastTransmissionTimestamp") final Byte lastTransmissionTimestamp, 
-			@QueryParam("lastTransmissionAddress") final String lastTransmissionAddress
+			@QueryParam("surname") final String surname/*,
+			@QueryParam("lastTransmissionTimestamp") @PositiveOrZero final long lastTransmissionTimestamp, 
+			@QueryParam("lastTransmissionAddress") final String lastTransmissionAddress*/
 			
 	) {
 		final EntityManager radioManager = RestJpaLifecycleProvider.entityManager("radio");
@@ -193,8 +193,8 @@ public class EntityService {
 		query
 			.setParameter("surname", surname)
 			.setParameter("forename", forename)
-			.setParameter("lastTransmissionTimestamp", lastTransmissionTimestamp)
-			.setParameter("lastTransmissionAddress", lastTransmissionAddress)
+			//.setParameter("lastTransmissionTimestamp", lastTransmissionTimestamp)
+			//.setParameter("lastTransmissionAddress", lastTransmissionAddress)
 			.setParameter("email", email)
 			.setParameter("lowerCreationTimestamp", lowerCreationTimestamp)
 			.setParameter("upperCreationTimestamp", upperCreationTimestamp);
