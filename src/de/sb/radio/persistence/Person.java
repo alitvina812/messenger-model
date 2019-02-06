@@ -65,7 +65,8 @@ public class Person extends BaseEntity{
 	@AttributeOverrides({
 		@AttributeOverride(name="address", column = @Column(name="lastTransmissionAddress")),
 		@AttributeOverride(name="timestamp", column = @Column(name="lastTransmissionTimestamp")),		
-		@AttributeOverride(name="offer", column = @Column(name="lastTransmissionOffer"))
+		@AttributeOverride(name="offer", column = @Column(name="lastTransmissionOffer")),
+		@AttributeOverride(name="answer", column = @Column(name="lastTransmissionAnswer"))
 	})
 	private Transmission lastTransmission;
 	

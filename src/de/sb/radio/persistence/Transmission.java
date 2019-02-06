@@ -21,6 +21,9 @@ public class Transmission {
 	@Column(nullable = true, updatable = true, length = 4096)
 	private String offer;
 	
+	@Column(nullable = true, updatable = true, length = 4096)
+	private String answer;
+	
 	
 	@JsonbProperty()
 	public Long getTimestamp() {
@@ -48,5 +51,14 @@ public class Transmission {
 	
 	public void setOffer(String offer) {
 		this.offer = offer;
+	}
+	
+	@JsonbProperty()
+	public String getAnswer() {
+		return this.answer;
+	}
+	
+	public void setAnswer(String answer) {
+		this.answer = answer;
 	}
 }
