@@ -60,6 +60,8 @@ public class Person extends BaseEntity{
 	@Size(min = 1, max = 31)
 	private String surname;
 	
+	
+	
 	@Valid
 	@Embedded
 	@AttributeOverrides({
