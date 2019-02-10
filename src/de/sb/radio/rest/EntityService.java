@@ -45,7 +45,7 @@ import de.sb.radio.persistence.Person;
 import de.sb.radio.persistence.Person.Group;
 import de.sb.radio.persistence.Processor;
 import de.sb.radio.persistence.Track;
-import de.sb.radio.persistence.Transmission;
+import de.sb.radio.persistence.Negotiation;
 import de.sb.toolbox.Copyright;
 import de.sb.toolbox.net.RestJpaLifecycleProvider;
 
@@ -67,29 +67,14 @@ public class EntityService {
 			+ "(:lowerCreationTimestamp is null or p.creationTimestamp >= :lowerCreationTimestamp) and "
 			+ "(:upperCreationTimestamp is null or p.creationTimestamp <= :upperCreationTimestamp) and "
 			+ "(:surname is null or p.surname = :surname) and "
-			+ "(:forename is null or p.forename = :forename) and"
-			+ "(:email is null or p.email = :email)";
-	
-	static private final String CRITERIA_QUERY_JPQL_STATIONS = "select p.identity from Person as p where "
-			+ "(:lowerCreationTimestamp is null or p.creationTimestamp >= :lowerCreationTimestamp) and "
-			+ "(:upperCreationTimestamp is null or p.creationTimestamp <= :upperCreationTimestamp) and "
-			+ "(:surname is null or p.surname = :surname) and "
-			+ "(:forename is null or p.forename = :forename) and"
-			+ "(p.lastTransmission.offer is not null) and"
-			+ "(:lastTransmissionTimestamp is null or p.lastTransmission.timestamp >= :lastTransmissionTimestamp) and"
-			+ "(:lastTransmissionAddress is null or p.lastTransmission.address = :lastTransmissionAddress) and "
-			+ "(:email is null or p.email = :email)";
-	
-	static private final String CRITERIA_QUERY_JPQL_LISTENERS = "select p.identity from Person as p where "
-			+ "(:lowerCreationTimestamp is null or p.creationTimestamp >= :lowerCreationTimestamp) and "
-			+ "(:upperCreationTimestamp is null or p.creationTimestamp <= :upperCreationTimestamp) and "
-			+ "(:surname is null or p.surname = :surname) and "
-			+ "(:forename is null or p.forename = :forename) and"
-			+ "(p.lastTransmission.offer is null) and"
-			+ "(p.lastTransmission.answer is not null) and"
-			+ "(:lastTransmissionTimestamp is null or p.lastTransmission.timestamp >= :lastTransmissionTimestamp) and"
-			+ "(:lastTransmissionAddress is null or p.lastTransmission.address = :lastTransmissionAddress) and "
-			+ "(:email is null or p.email = :email)";
+			+ "(:forename is null or p.forename = :forename) and "
+			+ "(:email is null or p.email = :email) and "
+			+ "(:negotiationOffering is null or (p.negotiation.offer is not null and p.negotiation.answer is null) = :negotiationOffering) and "
+			+ "(:negotiationAnswering is null or (p.negotiation.offer is not null and p.negotiation.answer is not null) = :negotiationAnswering) and "
+			+ "(:negotiationOffer is null or p.negotiation.offer = :negotiationOffer) and "
+			+ "(:negotiationAnswer is null or p.negotiation.answer = :negotiationAnswer) and "
+			+ "(:lowerNegotiationTimestamp is null or p.negotiation.timestamp >= :lowerNegotiationTimestamp) and "
+			+ "(:upperNegotiationTimestamp is null or p.negotiation.timestamp <= :upperNegotiationTimestamp)";
 
 	static private final String CRITERIA_QUERY_JPQL_ALBUM = "select a.identity from Album as a where "
 			+ "(:lowerCreationTimestamp is null or a.creationTimestamp >= :lowerCreationTimestamp) and "
@@ -195,24 +180,21 @@ public class EntityService {
 	public Collection<Person> queryPeople(
 			@QueryParam("resultOffset") @PositiveOrZero int resultOffset,
 			@QueryParam("resultLimit")  @PositiveOrZero int resultLimit,
-			@QueryParam("lowerCreationTimestamp") @PositiveOrZero final Long lowerCreationTimestamp,
-			@QueryParam("upperCreationTimestamp") @PositiveOrZero final Long upperCreationTimestamp,
+			@QueryParam("lowerCreationTimestamp") final Long lowerCreationTimestamp,
+			@QueryParam("upperCreationTimestamp") final Long upperCreationTimestamp,
 			@QueryParam("email") @Email final String email,
 			@QueryParam("forename") final String forename, 
 			@QueryParam("surname") final String surname,
-			@QueryParam("lastTransmissionTimestamp") @PositiveOrZero final long lastTransmissionTimestamp, 
-			@QueryParam("lastTransmissionAddress") final String lastTransmissionAddress,
-			@QueryParam("stationsOnly") @PositiveOrZero final int stationsOnly,
-			@QueryParam("listenerOnly") @PositiveOrZero final int listenerOnly
-			
+			@QueryParam("negotiationOffering") final Boolean negotiationOffering,
+			@QueryParam("negotiationAnswering") final Boolean negotiationAnswering,
+			@QueryParam("negotiationOffer") final String negotiationOffer,
+			@QueryParam("negotiationAnswer") final String negotiationAnswer,
+			@QueryParam("lowerNegotiationTimestamp") final Long lowerNegotiationTimestamp,
+			@QueryParam("upperNegotiationTimestamp") final Long upperNegotiationTimestamp
 	) {
 		final EntityManager radioManager = RestJpaLifecycleProvider.entityManager("radio");
 		
-		String query_string = CRITERIA_QUERY_JPQL_PERSON;
-		if (stationsOnly != 0)  query_string = CRITERIA_QUERY_JPQL_STATIONS;
-		if (listenerOnly != 0)  query_string = CRITERIA_QUERY_JPQL_LISTENERS;
-		
-		final TypedQuery<Long> query = radioManager.createQuery(query_string, Long.class);
+		final TypedQuery<Long> query = radioManager.createQuery(CRITERIA_QUERY_JPQL_PERSON, Long.class);
 		if (resultLimit > 0) query.setMaxResults(resultLimit);
 		if (resultOffset > 0) query.setFirstResult(resultOffset);
 		query
@@ -220,12 +202,13 @@ public class EntityService {
 			.setParameter("forename", forename)
 			.setParameter("email", email)
 			.setParameter("lowerCreationTimestamp", lowerCreationTimestamp)
-			.setParameter("upperCreationTimestamp", upperCreationTimestamp);
-		
-		if (stationsOnly != 0 || listenerOnly != 0) 
-			query.setParameter("lastTransmissionTimestamp", lastTransmissionTimestamp);
-		if (stationsOnly != 0 || listenerOnly != 0) 
-			query.setParameter("lastTransmissionAddress", lastTransmissionAddress);
+			.setParameter("upperCreationTimestamp", upperCreationTimestamp)
+			.setParameter("negotiationOffering", negotiationOffering)
+			.setParameter("negotiationAnswering", negotiationAnswering)
+			.setParameter("negotiationOffer", negotiationOffer)
+			.setParameter("negotiationAnswer", negotiationAnswer)
+			.setParameter("lowerNegotiationTimestamp", lowerNegotiationTimestamp)
+			.setParameter("upperNegotiationTimestamp", upperNegotiationTimestamp);
 
 		final List<Long> peopleReferences = query.getResultList();
 		final List<Person> people = new ArrayList<>();
@@ -282,8 +265,8 @@ public class EntityService {
 		if (password != null && !password.isEmpty()) {
 			person.setPasswordHash(HashTools.sha256HashCode(password));
 		}
-		if (template.getLastTransmission() != null) {
-			person.setLastTransmission(template.getLastTransmission());
+		if (template.getNegotiation() != null) {
+			person.setNegotiation(template.getNegotiation());
 		}
 
 		if(insert) {
@@ -537,9 +520,9 @@ public class EntityService {
 	@Produces(MediaType.WILDCARD)
 	public Response queryDocument(
 			@PathParam("id") @Positive final long documentIdentity,
-			@QueryParam("imageWidth") final Integer imageWidth,
-			@QueryParam("imageHeight") final Integer imageHeight,
-			@QueryParam("audioCompressionRatio") final Double audioCompressionRatio
+			@QueryParam("imageWidth") @Positive final Integer imageWidth,
+			@QueryParam("imageHeight") @Positive final Integer imageHeight,
+			@QueryParam("audioCompressionRatio") @Positive final Double audioCompressionRatio
 	) throws IOException, UnsupportedAudioFileException {
 		System.out.println("getting document ...");
 		System.out.println("***********" + audioCompressionRatio + "************");

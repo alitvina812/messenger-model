@@ -34,6 +34,8 @@ import de.sb.toolbox.bind.JsonProtectedPropertyStrategy;
 public class Person extends BaseEntity{
 	static public enum Group {USER, ADMIN}
 	
+	static private final byte[] DEFAULT_PASSWORD_HASH = HashTools.sha256HashCode("");
+	
 	@Column(nullable = false, updatable = true, unique = true)
 	@NotNull
 	@Size(min = 1, max = 128)
@@ -60,18 +62,14 @@ public class Person extends BaseEntity{
 	@Size(min = 1, max = 31)
 	private String surname;
 	
-	
-	
 	@Valid
 	@Embedded
 	@AttributeOverrides({
-		@AttributeOverride(name="address", column = @Column(name="lastTransmissionAddress")),
-		@AttributeOverride(name="timestamp", column = @Column(name="lastTransmissionTimestamp")),		
-		@AttributeOverride(name="offer", column = @Column(name="lastTransmissionOffer")),
-		@AttributeOverride(name="answer", column = @Column(name="lastTransmissionAnswer"))
+		@AttributeOverride(name="timestamp", column = @Column(name="negotiationTimestamp")),		
+		@AttributeOverride(name="offer", column = @Column(name="negotiationOffer")),
+		@AttributeOverride(name="answer", column = @Column(name="negotiationAnswer"))
 	})
-	private Transmission lastTransmission;
-	
+	private Negotiation negotiation;
 	
 	@OneToMany(mappedBy="owner", cascade = {CascadeType.REMOVE, CascadeType.REFRESH})
 	private Set<Track> tracks;
@@ -81,11 +79,10 @@ public class Person extends BaseEntity{
 	private Document avatar;
 	
 	public Person(Document avatar) {
-		this.passwordHash = HashTools.sha256HashCode("");
+		this.passwordHash = DEFAULT_PASSWORD_HASH;
 		this.tracks = Collections.emptySet();
 		this.avatar = avatar;
 		this.group = Group.USER;
-		this.lastTransmission = new Transmission();
 	}
 	
 	protected Person() {
@@ -134,15 +131,14 @@ public class Person extends BaseEntity{
 	}
 	
 	@JsonbProperty
-	public Transmission getLastTransmission() {
-		return this.lastTransmission;
+	public Negotiation getNegotiation() {
+		return this.negotiation;
 	}
 	
-	public void setLastTransmission(Transmission lastTransmission) {
-		this.lastTransmission = lastTransmission;
+	public void setNegotiation(Negotiation negotiation) {
+		this.negotiation = negotiation;
 	}
 	
-
 	@JsonbProperty
 	public Group getGroup () {
 		return this.group;
